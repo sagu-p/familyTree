@@ -5,10 +5,27 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Family Tree</title>
     <style>
+
         body {
             font-family: Arial, sans-serif;
             margin: 0;
             padding: 0;
+        }
+
+        /* Scrollable Wrapper to allow horizontal and vertical scroll */
+        #family-tree-wrapper {
+            width: 100vw;
+            height: 100vh;
+            overflow-x: auto;
+            overflow-y: auto;
+            position: relative;
+        }
+
+        /* Tree container */
+        #family-tree {
+            min-width: 200vw; /* Ensures enough space for horizontal expansion */
+            min-height: 100vh;
+            white-space: nowrap; /* Prevent wrapping */
         }
 
         /* Tree styling */
@@ -17,7 +34,6 @@
             justify-content: center;
             padding-top: 20px;
             position: relative;
-            padding-left: 50px;
             white-space: nowrap;
             transition: height 0.3s ease;
         }
@@ -100,12 +116,41 @@
             display: none;
         }
 
+        /* Button Styling */
+        .expand-collapse-buttons {
+            text-align: center;
+            margin: 20px;
+        }
+
+        .expand-collapse-buttons button {
+            padding: 10px 20px;
+            font-size: 16px;
+            cursor: pointer;
+            background-color: #e9453f;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            margin-right: 10px;
+        }
+
+        .expand-collapse-buttons button:hover {
+            background-color: #d12e2a;
+        }
     </style>
 </head>
 <body>
 
 <h1 style="text-align: center;">Karsan Patel's Family Tree</h1>
-<div id="family-tree" class="tree"></div>
+
+<!-- Expand/Collapse All Buttons -->
+<div class="expand-collapse-buttons">
+    <button id="expand-all">Expand All</button>
+</div>
+
+<!-- Scrollable Wrapper for family tree -->
+<div id="family-tree-wrapper">
+    <div id="family-tree" class="tree"></div>
+</div>
 
 <!-- Firebase App (v8.x, the core Firebase SDK) -->
 <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-app.js"></script>
@@ -162,6 +207,9 @@
 
             familyTreeDiv.innerHTML = `<ul>${treeHTML}</ul>`;
 
+            // Adjust the scroll position to show the entire expanded tree
+            adjustScrollToEnsureVisibility();
+
             // Add event listeners for collapsible functionality
             addCollapsibleListeners();
         } else {
@@ -211,13 +259,39 @@
                 if (childrenUl) {
                     // Toggle the 'collapsed' class to hide/show children
                     childrenUl.classList.toggle('collapsed');
+
+                    // Adjust the scroll to ensure all nodes are visible after expansion
+                    adjustScrollToEnsureVisibility();
                 }
             });
         });
     }
 
+    // Function to expand all nodes
+    function expandAllNodes() {
+        const allLists = document.querySelectorAll('#family-tree ul.collapsed');
+        allLists.forEach(ul => ul.classList.remove('collapsed'));
+
+        // Adjust scroll to ensure visibility after expanding all nodes
+        adjustScrollToEnsureVisibility();
+    }
+
+    // Attach the "Expand All" functionality to the button
+    document.getElementById('expand-all').addEventListener('click', expandAllNodes);
+
+    // Function to adjust scroll to ensure all nodes are visible after expanding
+    function adjustScrollToEnsureVisibility() {
+        const wrapper = document.getElementById('family-tree-wrapper');
+        const tree = document.getElementById('family-tree');
+
+        // Adjust horizontal and vertical scroll based on the tree dimensions
+        wrapper.scrollLeft = (tree.scrollWidth - wrapper.clientWidth) / 2;
+        wrapper.scrollTop = (tree.scrollHeight - wrapper.clientHeight) / 2;
+    }
+
     // Fetch family members when the page loads
     window.onload = fetchFamilyMembers;
+
 </script>
 
 </body>
