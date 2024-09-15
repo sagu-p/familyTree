@@ -1,0 +1,224 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Family Tree</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 0;
+        }
+
+        /* Tree styling */
+        .tree ul {
+            display: flex;
+            justify-content: center;
+            padding-top: 20px;
+            position: relative;
+            padding-left: 50px;
+            white-space: nowrap;
+            transition: height 0.3s ease;
+        }
+
+        .tree li {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            text-align: center;
+            list-style-type: none;
+            position: relative;
+            padding: 20px 5px 0 5px;
+        }
+
+        .tree li::before, .tree li::after {
+            content: '';
+            position: absolute;
+            top: 0;
+            right: 50%;
+            border-top: 2px solid #ccc;
+            width: 50%;
+            height: 20px;
+        }
+
+        .tree li::after {
+            right: auto;
+            left: 50%;
+            border-left: 2px solid #ccc;
+        }
+
+        .tree li:only-child::before, .tree li:only-child::after {
+            display: none;
+        }
+
+        .tree li:only-child {
+            padding-top: 0;
+        }
+
+        .tree li:first-child::before, .tree li:last-child::after {
+            border: 0 none;
+        }
+
+        .tree li:last-child::before {
+            border-right: 2px solid #ccc;
+        }
+
+        .tree li:first-child::after {
+            border-left: 2px solid #ccc;
+        }
+
+        .tree ul ul::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 50%;
+            border-left: 2px solid #ccc;
+            width: 0;
+            height: 20px;
+        }
+
+        .tree li a {
+            border: 2px solid #ccc;
+            padding: 5px 10px;
+            text-decoration: none;
+            color: #666;
+            background-color: #f8f8f8;
+            border-radius: 5px;
+            display: inline-block;
+            cursor: pointer;
+        }
+
+        .tree li a:hover {
+            background: #e9453f;
+            color: white;
+            border: 2px solid #e9453f;
+        }
+
+        /* Hidden child nodes by default */
+        .tree ul.collapsed {
+            display: none;
+        }
+
+    </style>
+</head>
+<body>
+
+<h1 style="text-align: center;">Karsan Patel's Family Tree</h1>
+<div id="family-tree" class="tree"></div>
+
+<!-- Firebase App (v8.x, the core Firebase SDK) -->
+<script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-app.js"></script>
+<!-- Firebase Firestore (v8.x) -->
+<script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-firestore.js"></script>
+
+<script>
+
+    // Firebase configuration
+    const firebaseConfig = {
+        apiKey: "AIzaSyBFsvUtF5LNVVgCUBIjjGJ-Qjby9m2DTWA",
+        authDomain: "family-tree-5a724.firebaseapp.com",
+        projectId: "family-tree-5a724",
+        storageBucket: "family-tree-5a724.appspot.com",
+        messagingSenderId: "298658072073",
+        appId: "1:298658072073:web:d01b234c71c48b22555ad8"
+    };
+
+    // Initialize Firebase
+    firebase.initializeApp(firebaseConfig);
+    const db = firebase.firestore();
+
+    // Function to fetch family members and display them
+    function fetchFamilyMembers() {
+        db.collection("familyMembers").get().then((querySnapshot) => {
+            const familyMembers = [];
+            querySnapshot.forEach((doc) => {
+                familyMembers.push({ id: doc.id, ...doc.data() });
+            });
+
+            console.log("Family Members Fetched:", familyMembers);
+
+            // Display the family members in a tree structure
+            displayFamilyTree(familyMembers);
+        }).catch(error => {
+            console.error("Error fetching family members: ", error);
+        });
+    }
+
+    // Function to display the family tree
+    function displayFamilyTree(familyMembers) {
+        const familyTreeDiv = document.getElementById('family-tree');
+
+        // Find the root members (grandparents) where parentId is "00"
+        const rootMembers = familyMembers.filter(member => member.parentId === "00");
+
+        if (rootMembers.length > 0) {
+            let treeHTML = '';
+
+            // Generate tree HTML for each root member (grandparents)
+            rootMembers.forEach(rootMember => {
+                treeHTML += generateTreeHTML(rootMember, familyMembers);
+            });
+
+            familyTreeDiv.innerHTML = `<ul>${treeHTML}</ul>`;
+
+            // Add event listeners for collapsible functionality
+            addCollapsibleListeners();
+        } else {
+            console.warn("No root members found. Check if parentId is set correctly.");
+        }
+    }
+
+    // Recursive function to generate the tree structure
+    function generateTreeHTML(member, allMembers) {
+        let memberHTML = `<li>`;
+
+        // Display the member
+        memberHTML += `<a href="#">${member.name}</a>`;
+
+        // Check if the member has a spouse and display them next to each other
+        if (member.spouseId) {
+            const spouse = allMembers.find(m => m.id === member.spouseId);
+            if (spouse) {
+                memberHTML += ` & <a href="#">${spouse.name}</a>`;
+            }
+        }
+
+        // Find children of the current member by checking the parentId
+        const children = allMembers.filter(m => m.parentId === member.id || (member.spouseId && m.parentId === member.spouseId));
+
+        if (children.length > 0) {
+            memberHTML += `<ul class="collapsed">`;
+            children.forEach(child => {
+                memberHTML += generateTreeHTML(child, allMembers);
+            });
+            memberHTML += `</ul>`;
+        }
+
+        memberHTML += `</li>`;
+        return memberHTML;
+    }
+
+    // Add click event listeners to toggle visibility of children
+    function addCollapsibleListeners() {
+        const nodes = document.querySelectorAll('#family-tree li a');
+
+        nodes.forEach(node => {
+            node.addEventListener('click', function(event) {
+                event.preventDefault();  // Prevent default link behavior
+
+                const childrenUl = node.parentElement.querySelector('ul');
+                if (childrenUl) {
+                    // Toggle the 'collapsed' class to hide/show children
+                    childrenUl.classList.toggle('collapsed');
+                }
+            });
+        });
+    }
+
+    // Fetch family members when the page loads
+    window.onload = fetchFamilyMembers;
+</script>
+
+</body>
+</html>
