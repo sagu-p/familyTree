@@ -1,0 +1,518 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Family Tree</title>
+    <style>
+
+        body {
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 0;
+        }
+
+        /* Scrollable Wrapper to allow horizontal and vertical scroll */
+        #family-tree-wrapper {
+            width: 100vw;
+            height: 100vh;
+            overflow-x: auto;
+            overflow-y: auto;
+            position: relative;
+        }
+
+        /* Tree container */
+        #family-tree {
+            min-width: 250vw; /* Ensures enough space for horizontal expansion */
+            min-height: 100vh;
+            white-space: nowrap; /* Prevent wrapping */
+        }
+
+        /* Tree styling */
+        .tree ul {
+            display: flex;
+            justify-content: center;
+            padding-top: 20px;
+            position: relative;
+            white-space: nowrap;
+            transition: height 0.3s ease;
+        }
+
+        .tree li {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            text-align: center;
+            list-style-type: none;
+            position: relative;
+            padding: 20px 5px 0 5px;
+        }
+
+        .tree li::before, .tree li::after {
+            content: '';
+            position: absolute;
+            top: 0;
+            right: 50%;
+            border-top: 2px solid #ccc;
+            width: 50%;
+            height: 20px;
+        }
+
+        .tree li::after {
+            right: auto;
+            left: 50%;
+            border-left: 2px solid #ccc;
+        }
+
+        .tree li:only-child::before, .tree li:only-child::after {
+            display: none;
+        }
+
+        .tree li:only-child {
+            padding-top: 0;
+        }
+
+        .tree li:first-child::before, .tree li:last-child::after {
+            border: 0 none;
+        }
+
+        .tree li:last-child::before {
+            border-right: 2px solid #ccc;
+        }
+
+        .tree li:first-child::after {
+            border-left: 2px solid #ccc;
+        }
+
+        .tree ul ul::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 50%;
+            border-left: 2px solid #ccc;
+            width: 0;
+            height: 20px;
+        }
+
+        .tree li a {
+            border: 2px solid #ccc;
+            padding: 5px 10px;
+            text-decoration: none;
+            color: #666;
+            background-color: #f8f8f8;
+            border-radius: 5px;
+            display: inline-block;
+            cursor: pointer;
+        }
+
+        .tree li a:hover {
+            background: #e9453f;
+            color: white;
+            border: 2px solid #e9453f;
+        }
+
+        /* Hidden child nodes by default */
+        .tree ul.collapsed {
+            display: none;
+        }
+
+        /* Button Styling */
+        .expand-collapse-buttons {
+            text-align: center;
+            margin: 20px;
+        }
+
+        .expand-collapse-buttons button {
+            padding: 10px 20px;
+            font-size: 16px;
+            cursor: pointer;
+            background-color: #e9453f;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            margin-right: 10px;
+        }
+
+        .expand-collapse-buttons button:hover {
+            background-color: #d12e2a;
+        }
+
+        /* Info Symbol Styling */
+        .info-icon {
+            cursor: pointer;
+            font-size: 16px;
+            color: #666;
+            margin-left: 5px;
+        }
+
+        .info-icon:hover {
+            color: #e9453f;
+        }
+
+        /* Modal Styling */
+        .modal {
+            display: none; 
+            position: fixed; 
+            z-index: 1; 
+            left: 0;
+            top: 0;
+            width: 100%; 
+            height: 100%; 
+            overflow: auto;
+            background-color: rgba(0, 0, 0, 0.5); 
+            padding-top: 60px;
+        }
+
+        .modal-content {
+            background-color: #fefefe;
+            margin: auto;
+            padding: 20px;
+            border: 1px solid #888;
+            width: 80%;
+            max-width: 500px;
+            border-radius: 10px;
+        }
+
+        .close {
+            color: #aaa;
+            float: right;
+            font-size: 28px;
+            font-weight: bold;
+        }
+
+        .close:hover, .close:focus {
+            color: black;
+            text-decoration: none;
+            cursor: pointer;
+        }
+
+        /* Form Styles for Editing */
+        input, button {
+            display: block;
+            width: 100%;
+            margin: 10px 0;
+            padding: 10px;
+            font-size: 16px;
+        }
+
+        /* Member Picture */
+        .member-picture {
+            width: 150px;
+            height: 150px;
+            border-radius: 50%;
+            object-fit: cover;
+            margin-bottom: 20px;
+        }
+
+    </style>
+</head>
+<body>
+
+<h1 style="text-align: center;">Karsan Patel's Family Tree</h1>
+
+<!-- Expand/Collapse All Buttons -->
+<div class="expand-collapse-buttons">
+    <button id="expand-all">Expand All</button>
+    <button id="collapse-all">Collapse All</button>
+</div>
+
+<!-- Scrollable Wrapper for family tree -->
+<div id="family-tree-wrapper">
+    <div id="family-tree" class="tree"></div>
+</div>
+
+<!-- Modal for displaying and editing family member details -->
+<div id="familyModal" class="modal">
+    <div class="modal-content">
+        <span class="close">&times;</span>
+        <h2 id="member-name" style="text-align: center;">Edit Family Member</h2>
+
+        <!-- Form Fields for Editing Family Member Info -->
+        <input type="text" id="edit-name" placeholder="Name">
+        <input type="text" id="edit-birthdate" placeholder="Birthdate (YYYY-MM-DD)">
+        <input type="text" id="edit-native" placeholder="Native Place">
+        <input type="text" id="edit-living" placeholder="Current Location">
+        <input type="text" id="edit-phone" placeholder="Phone Number">
+
+        <!-- Upload new picture -->
+        <input type="file" id="edit-picture" accept="image/*">
+        <img id="member-picture" class="member-picture" src="" alt="Member Picture">
+
+        <button id="save-changes">Save Changes</button>
+    </div>
+</div>
+
+<!-- Firebase App (v8.x, the core Firebase SDK) -->
+<script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-app.js"></script>
+<!-- Firebase Firestore (v8.x) -->
+<script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-firestore.js"></script>
+<script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-storage.js"></script> <!-- Firebase Storage -->
+
+<script>
+    // Firebase configuration
+    const firebaseConfig = {
+        apiKey: "AIzaSyBFsvUtF5LNVVgCUBIjjGJ-Qjby9m2DTWA",
+        authDomain: "family-tree-5a724.firebaseapp.com",
+        projectId: "family-tree-5a724",
+        storageBucket: "family-tree-5a724.appspot.com",
+        messagingSenderId: "298658072073",
+        appId: "1:298658072073:web:d01b234c71c48b22555ad8"
+    };
+
+    // Initialize Firebase
+    firebase.initializeApp(firebaseConfig);
+    const db = firebase.firestore();
+    const storage = firebase.storage();
+
+    let currentMemberId = null;
+    let currentPictureUrl = null; // To track the existing picture URL
+
+    // Function to fetch family members and display them
+    function fetchFamilyMembers() {
+        db.collection("familyMembers").get().then((querySnapshot) => {
+            const familyMembers = [];
+            querySnapshot.forEach((doc) => {
+                familyMembers.push({ id: doc.id, ...doc.data() });
+            });
+
+            console.log("Family Members Fetched:", familyMembers);
+
+            // Display the family members in a tree structure
+            displayFamilyTree(familyMembers);
+        }).catch(error => {
+            console.error("Error fetching family members: ", error);
+        });
+    }
+
+    // Function to display the family tree
+    function displayFamilyTree(familyMembers) {
+        const familyTreeDiv = document.getElementById('family-tree');
+
+        // Find the root members (grandparents) where parentId is "00"
+        const rootMembers = familyMembers.filter(member => member.parentId === "00");
+
+        if (rootMembers.length > 0) {
+            let treeHTML = '';
+
+            // Generate tree HTML for each root member (grandparents)
+            rootMembers.forEach(rootMember => {
+                treeHTML += generateTreeHTML(rootMember, familyMembers);
+            });
+
+            familyTreeDiv.innerHTML = `<ul>${treeHTML}</ul>`;
+
+            // Adjust the scroll position to show the entire expanded tree
+            adjustScrollToEnsureVisibility();
+
+            // Add event listeners for collapsible functionality
+            addCollapsibleListeners(familyMembers);
+        } else {
+            console.warn("No root members found. Check if parentId is set correctly.");
+        }
+    }
+
+    // Recursive function to generate the tree structure
+    function generateTreeHTML(member, allMembers) {
+        let memberHTML = `<li>`;
+
+        // Display the member name
+        memberHTML += `<div class="member-name"> <a href="#" data-id="${member.id}">${member.name}</a>`;
+
+        // Add the info icon (Karsan ⓘ)
+        memberHTML += `<span class="info-icon" data-id="${member.id}">ⓘ</span> </div>`;
+
+        // Check if the member has a spouse and display them next to each other
+        if (member.spouseId) {
+            const spouse = allMembers.find(m => m.id === member.spouseId);
+            if (spouse) {
+                memberHTML += ` & <div class="member-name">  <a href="#" data-id="${spouse.id}">${spouse.name}</a>`;
+                memberHTML += `<span class="info-icon" data-id="${spouse.id}">ⓘ</span> </div>`;
+            }
+        }
+
+        // Find children of the current member by checking the parentId
+        const children = allMembers.filter(m => m.parentId === member.id || (member.spouseId && m.parentId === member.spouseId));
+
+        if (children.length > 0) {
+            memberHTML += `<ul class="collapsed">`;
+            children.forEach(child => {
+                memberHTML += generateTreeHTML(child, allMembers);
+            });
+            memberHTML += `</ul>`;
+        }
+
+        memberHTML += `</li>`;
+        return memberHTML;
+    }
+
+    // Add click event listeners to toggle visibility of children and show details in a modal
+    function addCollapsibleListeners(familyMembers) {
+        const names = document.querySelectorAll('#family-tree .member-name');
+        const infoIcons = document.querySelectorAll('.info-icon');
+
+        // Add event listener to family member names to toggle collapse/expand
+        names.forEach(name => {
+            name.addEventListener('click', function(event) {
+                event.preventDefault();  // Prevent default link behavior
+
+                const childrenUl = name.parentElement.querySelector('ul');
+                if (childrenUl) {
+                    // Toggle the 'collapsed' class to hide/show children
+                    childrenUl.classList.toggle('collapsed');
+
+                    // Adjust the scroll to ensure all nodes are visible after expansion
+                    adjustScrollToEnsureVisibility();
+                }
+            });
+        });
+
+        // Add event listener to the info icon for showing the modal
+        infoIcons.forEach(icon => {
+            icon.addEventListener('click', function(event) {
+                event.stopPropagation();  // Prevent event bubbling up to the parent
+                const memberId = icon.getAttribute('data-id');
+                const memberData = familyMembers.find(m => m.id === memberId);
+                showModal(memberData);
+            });
+        });
+    }
+
+    // Function to expand all nodes
+    function expandAllNodes() {
+        const allLists = document.querySelectorAll('#family-tree ul.collapsed');
+        allLists.forEach(ul => ul.classList.remove('collapsed'));
+
+        // Adjust scroll to ensure visibility after expanding all nodes
+        adjustScrollToEnsureVisibility();
+    }
+
+    // Function to collapse all nodes except the root node
+    function collapseAllNodes() {
+        const allLists = document.querySelectorAll('#family-tree ul:not(.collapsed)');
+
+        // Ensure root nodes stay expanded
+        allLists.forEach(ul => {
+            const parentLi = ul.parentElement;
+            const isRoot = parentLi.parentElement.parentElement === null; // Check if it's the root node
+            if (!isRoot) {
+                ul.classList.add('collapsed');
+            }
+        });
+
+        // Adjust scroll after collapsing to make sure the tree fits
+        adjustScrollToEnsureVisibility();
+    }
+
+    // Attach the "Expand All" and "Collapse All" functionality to the buttons
+    document.getElementById('expand-all').addEventListener('click', expandAllNodes);
+    document.getElementById('collapse-all').addEventListener('click', collapseAllNodes);
+
+    // Function to adjust scroll to ensure all nodes are visible after expanding
+    function adjustScrollToEnsureVisibility() {
+        const wrapper = document.getElementById('family-tree-wrapper');
+        const tree = document.getElementById('family-tree');
+
+        // Adjust horizontal and vertical scroll based on the tree dimensions
+        wrapper.scrollLeft = (tree.scrollWidth - wrapper.clientWidth) / 2;
+        wrapper.scrollTop = (tree.scrollHeight - wrapper.clientHeight) / 2;
+    }
+
+    // Modal functions to show and close the modal
+    function showModal(member) {
+        const modal = document.getElementById("familyModal");
+        const span = document.getElementsByClassName("close")[0];
+
+        // Store the current member ID for saving later
+        currentMemberId = member.id;
+        currentPictureUrl = member.picUrl || 'default-image.png';
+
+        // Populate modal with member data
+        document.getElementById("edit-name").value = member.name || '';
+        document.getElementById("edit-birthdate").value = member.birthdate || '';
+        document.getElementById("edit-native").value = member.native || '';
+        document.getElementById("edit-living").value = member.location || '';
+        document.getElementById("edit-phone").value = member.phone || '';
+        document.getElementById("member-picture").src = currentPictureUrl;
+
+        // Display the modal
+        modal.style.display = "block";
+
+        // When the user clicks on <span> (x), close the modal
+        span.onclick = function() {
+            modal.style.display = "none";
+        };
+
+        // When the user clicks anywhere outside of the modal, close it
+        window.onclick = function(event) {
+            if (event.target == modal) {
+                modal.style.display = "none";
+            }
+        };
+    }
+
+    // Function to upload the new picture and get its download URL
+    function uploadPicture(file) {
+        return new Promise((resolve, reject) => {
+            if (!file) {
+                resolve(currentPictureUrl); // If no new file is selected, keep the current picture URL
+                return;
+            }
+
+            const storageRef = storage.ref(`family_members/${file.name}`);
+            const uploadTask = storageRef.put(file);
+
+            uploadTask.on('state_changed', 
+                function progress(snapshot) {
+                    const percentage = (snapshot.bytesTransferred / snapshot.totalBytes) * 100;
+                    console.log(`Upload is ${percentage}% done`);
+                }, 
+                function error(err) {
+                    reject(err);
+                }, 
+                function complete() {
+                    uploadTask.snapshot.ref.getDownloadURL().then(function(downloadURL) {
+                        resolve(downloadURL);
+                    });
+                }
+            );
+        });
+    }
+
+    // Function to save changes to Firestore, including the image
+    document.getElementById("save-changes").addEventListener('click', async () => {
+        const name = document.getElementById("edit-name").value;
+        const birthdate = document.getElementById("edit-birthdate").value;
+        const native = document.getElementById("edit-native").value;
+        const location = document.getElementById("edit-living").value;
+        const phone = document.getElementById("edit-phone").value;
+        const pictureFile = document.getElementById("edit-picture").files[0];
+
+        try {
+            const pictureUrl = await uploadPicture(pictureFile);
+
+            // Update the member data in Firestore
+            if (currentMemberId) {
+                await db.collection("familyMembers").doc(currentMemberId).update({
+                    name: name,
+                    birthdate: birthdate,
+                    native: native,
+                    location: location,
+                    phone: phone,
+                    picUrl: pictureUrl
+                });
+
+                console.log("Document successfully updated!");
+                window.location.reload();  // Reload the page to show the updated data
+            }
+        } catch (error) {
+            console.error("Error updating document or uploading image: ", error);
+        }
+    });
+
+    // Fetch family members when the page loads
+    window.onload = fetchFamilyMembers;
+
+</script>
+
+</body>
+</html>
