@@ -23,7 +23,7 @@
 
         /* Tree container */
         #family-tree {
-            min-width: 200vw; /* Ensures enough space for horizontal expansion */
+            min-width: 250vw; /* Ensures enough space for horizontal expansion */
             min-height: 100vh;
             white-space: nowrap; /* Prevent wrapping */
         }
@@ -136,6 +136,65 @@
         .expand-collapse-buttons button:hover {
             background-color: #d12e2a;
         }
+
+        /* Info Symbol Styling */
+        .info-icon {
+            cursor: pointer;
+            font-size: 16px;
+            color: #666;
+            margin-left: 5px;
+        }
+
+        .info-icon:hover {
+            color: #e9453f;
+        }
+
+        /* Modal Styling */
+        .modal {
+            display: none; 
+            position: fixed; 
+            z-index: 1; 
+            left: 0;
+            top: 0;
+            width: 100%; 
+            height: 100%; 
+            overflow: auto;
+            background-color: rgba(0, 0, 0, 0.5); 
+            padding-top: 60px;
+        }
+
+        .modal-content {
+            background-color: #fefefe;
+            margin: auto;
+            padding: 20px;
+            border: 1px solid #888;
+            width: 80%;
+            max-width: 500px;
+            border-radius: 10px;
+        }
+
+        .close {
+            color: #aaa;
+            float: right;
+            font-size: 28px;
+            font-weight: bold;
+        }
+
+        .close:hover, .close:focus {
+            color: black;
+            text-decoration: none;
+            cursor: pointer;
+        }
+
+        /* Member Picture */
+        .member-picture {
+            width: 150px;
+            height: 150px;
+            border-radius: 50%;
+            object-fit: cover;
+            margin-bottom: 20px;
+        }
+
     </style>
 </head>
 <body>
@@ -145,11 +204,26 @@
 <!-- Expand/Collapse All Buttons -->
 <div class="expand-collapse-buttons">
     <button id="expand-all">Expand All</button>
+    <button id="collapse-all">Collapse All</button>
 </div>
 
 <!-- Scrollable Wrapper for family tree -->
 <div id="family-tree-wrapper">
     <div id="family-tree" class="tree"></div>
+</div>
+
+<!-- Modal for displaying family member details -->
+<div id="familyModal" class="modal">
+    <div class="modal-content">
+        <span class="close">&times;</span>
+        <h2 id="member-name" style="text-align: center;">Member Name</h2>
+        <img id="member-picture" class="member-picture" src="" alt="Member Picture">
+        <p id="member-birthdate">Birthdate: </p>
+        <p id="member-native">Native: </p>
+        <p id="member-living">Curret Location: </p>
+        <p id="member-phone">Phone-Number: </p>
+        <!-- <p id="member-details">Other details will go here...</p> -->
+    </div>
 </div>
 
 <!-- Firebase App (v8.x, the core Firebase SDK) -->
@@ -211,7 +285,7 @@
             adjustScrollToEnsureVisibility();
 
             // Add event listeners for collapsible functionality
-            addCollapsibleListeners();
+            addCollapsibleListeners(familyMembers);
         } else {
             console.warn("No root members found. Check if parentId is set correctly.");
         }
@@ -221,14 +295,18 @@
     function generateTreeHTML(member, allMembers) {
         let memberHTML = `<li>`;
 
-        // Display the member
-        memberHTML += `<a href="#">${member.name}</a>`;
+        // Display the member name
+        memberHTML += `<div class="member-name"> <a href="#" data-id="${member.id}">${member.name}</a>`;
+
+        // Add the info icon (Karsan ⓘ)
+        memberHTML += `<span class="info-icon" data-id="${member.id}">ⓘ</span> </div>`;
 
         // Check if the member has a spouse and display them next to each other
         if (member.spouseId) {
             const spouse = allMembers.find(m => m.id === member.spouseId);
             if (spouse) {
-                memberHTML += ` & <a href="#">${spouse.name}</a>`;
+                memberHTML += ` & <div class="member-name">  <a href="#" data-id="${spouse.id}">${spouse.name}</a>`;
+                memberHTML += `<span class="info-icon" data-id="${spouse.id}">ⓘ</span> </div>`;
             }
         }
 
@@ -247,15 +325,17 @@
         return memberHTML;
     }
 
-    // Add click event listeners to toggle visibility of children
-    function addCollapsibleListeners() {
-        const nodes = document.querySelectorAll('#family-tree li a');
+    // Add click event listeners to toggle visibility of children and show details in a modal
+    function addCollapsibleListeners(familyMembers) {
+        const names = document.querySelectorAll('#family-tree .member-name');
+        const infoIcons = document.querySelectorAll('.info-icon');
 
-        nodes.forEach(node => {
-            node.addEventListener('click', function(event) {
+        // Add event listener to family member names to toggle collapse/expand
+        names.forEach(name => {
+            name.addEventListener('click', function(event) {
                 event.preventDefault();  // Prevent default link behavior
 
-                const childrenUl = node.parentElement.querySelector('ul');
+                const childrenUl = name.parentElement.querySelector('ul');
                 if (childrenUl) {
                     // Toggle the 'collapsed' class to hide/show children
                     childrenUl.classList.toggle('collapsed');
@@ -263,6 +343,16 @@
                     // Adjust the scroll to ensure all nodes are visible after expansion
                     adjustScrollToEnsureVisibility();
                 }
+            });
+        });
+
+        // Add event listener to the info icon for showing the modal
+        infoIcons.forEach(icon => {
+            icon.addEventListener('click', function(event) {
+                event.stopPropagation();  // Prevent event bubbling up to the parent
+                const memberId = icon.getAttribute('data-id');
+                const memberData = familyMembers.find(m => m.id === memberId);
+                showModal(memberData);
             });
         });
     }
@@ -276,8 +366,26 @@
         adjustScrollToEnsureVisibility();
     }
 
-    // Attach the "Expand All" functionality to the button
+    // Function to collapse all nodes except the root node
+    function collapseAllNodes() {
+        const allLists = document.querySelectorAll('#family-tree ul:not(.collapsed)');
+
+        // Ensure root nodes stay expanded
+        allLists.forEach(ul => {
+            const parentLi = ul.parentElement;
+            const isRoot = parentLi.parentElement.parentElement === null; // Check if it's the root node
+            if (!isRoot) {
+                ul.classList.add('collapsed');
+            }
+        });
+
+        // Adjust scroll after collapsing to make sure the tree fits
+        adjustScrollToEnsureVisibility();
+    }
+
+    // Attach the "Expand All" and "Collapse All" functionality to the buttons
     document.getElementById('expand-all').addEventListener('click', expandAllNodes);
+    document.getElementById('collapse-all').addEventListener('click', collapseAllNodes);
 
     // Function to adjust scroll to ensure all nodes are visible after expanding
     function adjustScrollToEnsureVisibility() {
@@ -287,6 +395,36 @@
         // Adjust horizontal and vertical scroll based on the tree dimensions
         wrapper.scrollLeft = (tree.scrollWidth - wrapper.clientWidth) / 2;
         wrapper.scrollTop = (tree.scrollHeight - wrapper.clientHeight) / 2;
+    }
+
+    // Modal functions to show and close the modal
+    function showModal(member) {
+        const modal = document.getElementById("familyModal");
+        const span = document.getElementsByClassName("close")[0];
+
+        // Populate modal with member data
+        document.getElementById("member-name").textContent = member.name;
+        document.getElementById("member-birthdate").textContent = `Birthdate: ${member.birthdate || 'N/A'}`;
+        document.getElementById("member-native").textContent = `Native: ${member.native || 'N/A'}`;
+        document.getElementById("member-living").textContent = `Curret Locatoin: ${member.location || 'N/A'}`;
+        document.getElementById("member-phone").textContent = `Phone-Number: ${member.phone || 'N/A'}`;
+        document.getElementById("member-picture").src = member.picUrl || 'default-image.png';  // Set a default picture if none is provided
+        //document.getElementById("member-details").textContent = member.details || 'No additional details provided.';
+
+        // Display the modal
+        modal.style.display = "block";
+
+        // When the user clicks on <span> (x), close the modal
+        span.onclick = function() {
+            modal.style.display = "none";
+        };
+
+        // When the user clicks anywhere outside of the modal, close it
+        window.onclick = function(event) {
+            if (event.target == modal) {
+                modal.style.display = "none";
+            }
+        };
     }
 
     // Fetch family members when the page loads
