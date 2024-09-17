@@ -23,8 +23,9 @@
 
         /* Tree container */
         #family-tree {
-            min-width: 250vw; /* Ensures enough space for horizontal expansion */
+            min-width: 300vw; /* Ensures enough space for horizontal expansion */
             min-height: 100vh;
+            max-width: 1000vw;
             white-space: nowrap; /* Prevent wrapping */
         }
 
@@ -194,6 +195,62 @@
             object-fit: cover;
             margin-bottom: 20px;
         }
+
+        /* Media Queries for Responsive Design */
+
+/* For Tablets */
+@media (max-width: 768px) {
+    #family-tree {
+        min-width: 400vw; /* Adjust for tablets */
+        padding: 10px;
+    }
+
+    .tree li a {
+        font-size: 14px;
+        padding: 5px 8px;
+    }
+
+    .expand-collapse-buttons button {
+        padding: 8px 15px;
+        font-size: 14px;
+    }
+
+    .member-picture {
+        width: 120px;
+        height: 120px;
+    }
+
+    .modal-content {
+        width: 90%;
+        padding: 15px;
+    }
+}
+
+/* For Mobile Phones */
+@media (max-width: 430px) {
+    #family-tree {
+        min-width: 700vw; /* Adjust for smaller screens to allow horizontal scrolling */
+    }
+
+    .tree li a {
+        font-size: 12px;
+        padding: 3px 5px;
+    }
+
+    .expand-collapse-buttons button {
+        padding: 6px 10px;
+        font-size: 12px;
+    }
+
+    .member-picture {
+        width: 100px;
+        height: 100px;
+    }
+
+    .modal-content {
+        padding: 10px;
+    }
+}
 
     </style>
 </head>
@@ -406,7 +463,7 @@
         document.getElementById("member-name").textContent = member.name;
         document.getElementById("member-birthdate").textContent = `Birthdate: ${member.birthdate || 'N/A'}`;
         document.getElementById("member-native").textContent = `Native: ${member.native || 'N/A'}`;
-        document.getElementById("member-living").textContent = `Curret Location: ${member.location || 'N/A'}`;
+        document.getElementById("member-living").textContent = `Curret Locatoin: ${member.location || 'N/A'}`;
         document.getElementById("member-phone").textContent = `Phone-Number: ${member.phone || 'N/A'}`;
         document.getElementById("member-picture").src = member.picUrl || 'default-image.png';  // Set a default picture if none is provided
         //document.getElementById("member-details").textContent = member.details || 'No additional details provided.';
