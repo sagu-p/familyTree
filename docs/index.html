@@ -284,6 +284,13 @@
 <body>
 
     <h1 style="text-align: center;">Karsan Patel's Family Tree</h1>
+    
+    <!-- Expand/Collapse All Buttons -->
+    <div class="expand-collapse-buttons">
+        <button id="expand-all">Expand All</button>
+        <button id="collapse-all">Collapse All</button>
+        <h4 style="text-align: center; color: #5f5d5c;">*To see more infomation click on ⓘ next to the name of the family member.</h4>
+    </div>
 
     <!-- Scrollable Wrapper for family tree -->
     <div id="family-tree-wrapper">
@@ -331,6 +338,8 @@
                 querySnapshot.forEach((doc) => {
                     familyMembers.push({ id: doc.id, ...doc.data() });
                 });
+
+                //console.log("Family Members Fetched:", familyMembers);
 
                 // Display the family members in a tree structure
                 displayFamilyTree(familyMembers);
@@ -391,7 +400,7 @@
             const children = allMembers.filter(m => m.parentId === member.id || (member.spouseId && m.parentId === member.spouseId));
 
             if (children.length > 0) {
-                memberHTML += `<ul>`;  // Remove the "collapsed" class to keep the tree open by default
+                memberHTML += `<ul class="collapsed">`;
                 children.forEach(child => {
                     memberHTML += generateTreeHTML(child, allMembers);
                 });
@@ -402,9 +411,26 @@
             return memberHTML;
         }
 
-        // Add click event listeners to show details in a modal
+        // Add click event listeners to toggle visibility of children and show details in a modal
         function addCollapsibleListeners(familyMembers) {
+            const names = document.querySelectorAll('#family-tree .member-name');
             const infoIcons = document.querySelectorAll('.info-icon');
+
+            // Add event listener to family member names to toggle collapse/expand
+            names.forEach(name => {
+                name.addEventListener('click', function (event) {
+                    event.preventDefault();  // Prevent default link behavior
+
+                    const childrenUl = name.parentElement.querySelector('ul');
+                    if (childrenUl) {
+                        // Toggle the 'collapsed' class to hide/show children
+                        childrenUl.classList.toggle('collapsed');
+
+                        // Adjust the scroll to ensure all nodes are visible after expansion
+                        adjustScrollToEnsureVisibility();
+                    }
+                });
+            });
 
             // Add event listener to the info icon for showing the modal
             infoIcons.forEach(icon => {
@@ -416,6 +442,36 @@
                 });
             });
         }
+
+        // Function to expand all nodes
+        function expandAllNodes() {
+            const allLists = document.querySelectorAll('#family-tree ul.collapsed');
+            allLists.forEach(ul => ul.classList.remove('collapsed'));
+
+            // Adjust scroll to ensure visibility after expanding all nodes
+            adjustScrollToEnsureVisibility();
+        }
+
+        // Function to collapse all nodes except the root node
+        function collapseAllNodes() {
+            const allLists = document.querySelectorAll('#family-tree ul:not(.collapsed)');
+
+            // Ensure root nodes stay expanded
+            allLists.forEach(ul => {
+                const parentLi = ul.parentElement;
+                const isRoot = parentLi.parentElement.parentElement === null; // Check if it's the root node
+                if (!isRoot) {
+                    ul.classList.add('collapsed');
+                }
+            });
+
+            // Adjust scroll after collapsing to make sure the tree fits
+            adjustScrollToEnsureVisibility();
+        }
+
+        // Attach the "Expand All" and "Collapse All" functionality to the buttons
+        document.getElementById('expand-all').addEventListener('click', expandAllNodes);
+        document.getElementById('collapse-all').addEventListener('click', collapseAllNodes);
 
         // Function to adjust scroll to ensure all nodes are visible after expanding
         function adjustScrollToEnsureVisibility() {
