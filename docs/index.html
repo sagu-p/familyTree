@@ -12,6 +12,17 @@
             padding: 0;
         }
 
+
+        /* Make the entire tree container scrollable horizontally and vertically */
+        /* .tree-container {
+            width: 100vw;
+            height: 100vh;
+            overflow-x: auto;  /* Horizontal scroll
+            overflow-y: auto;   Vertical scroll 
+            padding: 20px;
+            box-sizing: border-box;
+        }*/
+
         /* Scrollable Wrapper to allow horizontal and vertical scroll */
         #family-tree-wrapper {
             width: 100vw;
@@ -89,7 +100,7 @@
         }
 
         .tree li:first-child::after {
-            border-left: 2px solid #ccc;
+            border-left: 2px solid #cccccc;
         }
 
         .tree ul ul::before {
@@ -107,13 +118,16 @@
             padding: 5px 10px;
             text-decoration: none;
             color: #666;
-            background-color: #f8f8f8;
+            background-color: #f6f9f7;
             border-radius: 5px;
             display: inline-block;
             cursor: pointer;
         }
 
-        .tree li a:hover {
+        .tree li div:hover a,
+        .tree li div:hover + ul li div a,
+        .tree li div:hover ~ ul li div a,
+        .tree li div:hover ~ div a {
             background: #e9453f;
             color: white;
             border: 2px solid #e9453f;
@@ -148,7 +162,7 @@
         /* Member Tree Node Styling */
         .member-name {
             display: flex;
-            flex-direction: column;
+            flex-direction: row;
             align-items: center;
             justify-content: center;
             text-align: center;
@@ -281,15 +295,17 @@
     </style>
 </head>
 
-<body>
+<!-- <body class="tree-container"> -->
 
+<body>
     <h1 style="text-align: center;">Karsan Patel's Family Tree</h1>
-    
+
     <!-- Expand/Collapse All Buttons -->
     <div class="expand-collapse-buttons">
         <button id="expand-all">Expand All</button>
         <button id="collapse-all">Collapse All</button>
-        <h4 style="text-align: center; color: #5f5d5c;">*To see more infomation click on ⓘ next to the name of the family member.</h4>
+        <h4 style="text-align: center; color: #5f5d5c;">*To see more infomation click on ⓘ next to the name of the
+            family member.</h4>
     </div>
 
     <!-- Scrollable Wrapper for family tree -->
@@ -302,7 +318,8 @@
         <div class="modal-content">
             <span class="close">&times;</span>
             <h2 id="member-name" style="text-align: center;">Member Name</h2>
-            <img id="member-picture" class="member-picture" src="" alt="Member Picture" onerror="this.src='https://tinyurl.com/26hal84z'">
+            <img id="member-picture" class="member-picture" src="" alt="Member Picture"
+                onerror="this.src='https://tinyurl.com/26hal84z'">
             <p id="member-birthdate"><b>Birthdate:</b> </p>
             <p id="member-native">Native: </p>
             <p id="member-living">Current Location: </p>
@@ -391,7 +408,7 @@
                 const spouse = allMembers.find(m => m.id === member.spouseId);
                 if (spouse) {
                     memberHTML += `& <div class="member-name"> <img class="member-picture-tree" src="${spouse.picUrl}" alt="Member Picture" onerror="this.src='https://tinyurl.com/26hal84z'">`;
-                    memberHTML += `<a href="#" data-id="${spouse.id}">${spouse.name}</a>`;            
+                    memberHTML += `<a href="#" data-id="${spouse.id}">${spouse.name}</a>`;
                     memberHTML += `<span class="info-icon" data-id="${spouse.id}">ⓘ</span> </div>`;
                 }
             }
@@ -503,7 +520,6 @@
             span.onclick = function () {
                 modal.style.display = "none";
             };
-
             // When the user clicks anywhere outside of the modal, close it
             window.onclick = function (event) {
                 if (event.target == modal) {
