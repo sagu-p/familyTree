@@ -6,22 +6,17 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Family Tree</title>
     <style>
+        html {
+            scroll-behavior: smooth;
+            /* Enables smooth scrolling */
+        }
+
+
         body {
             font-family: Arial, sans-serif;
             margin: 0;
             padding: 0;
         }
-
-
-        /* Make the entire tree container scrollable horizontally and vertically */
-        /* .tree-container {
-            width: 100vw;
-            height: 100vh;
-            overflow-x: auto;  /* Horizontal scroll
-            overflow-y: auto;   Vertical scroll 
-            padding: 20px;
-            box-sizing: border-box;
-        }*/
 
         /* Scrollable Wrapper to allow horizontal and vertical scroll */
         #family-tree-wrapper {
@@ -125,9 +120,13 @@
         }
 
         .tree li div:hover a,
-        .tree li div:hover + ul li div a,
-        .tree li div:hover ~ ul li div a,
-        .tree li div:hover ~ div a {
+        .tree li div:focus a,
+        .tree li div:hover+ul li div a,
+        .tree li div:focus+ul li div a,
+        .tree li div:hover~ul li div a,
+        .tree li div:focus~ul li div a,
+        .tree li div:hover~div a,
+        .tree li div:focus~div a {
             background: #e9453f;
             color: white;
             border: 2px solid #e9453f;
@@ -427,6 +426,30 @@
             memberHTML += `</li>`;
             return memberHTML;
         }
+
+        document.addEventListener('mouseover', (event) => {
+            const target = event.target;
+            if (target.closest('.tree li div')) { // Check if the hovered node is within the tree
+                target.closest('.tree li div').scrollIntoView({
+                    behavior: 'smooth', // Smooth scrolling
+                    block: 'center',    // Center the element in the viewport
+                    inline: 'nearest'   // Nearest alignment horizontally
+                });
+            }
+        });
+
+        document.addEventListener('click', (event) => {
+            const target = event.target;
+            if (target.closest('.tree li div')) {
+                target.closest('.tree li div').focus(); // Add focus for accessibility
+                target.closest('.tree li div').scrollIntoView({
+                    behavior: 'smooth',
+                    block: 'center',
+                    inline: 'nearest'
+                });
+            }
+        });
+
 
         // Add click event listeners to toggle visibility of children and show details in a modal
         function addCollapsibleListeners(familyMembers) {
