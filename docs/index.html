@@ -6,10 +6,16 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Family Tree</title>
     <style>
-        html, body {
+
+        html{
+            background-color: #f4938f;
+        }
+
+        html,
+        body {
             scroll-behavior: auto;
             /* Enables smooth scrolling */
-            font-family: Arial, sans-serif;
+            font-family: Merriweather;
             margin: 0;
             padding: 0;
         }
@@ -59,7 +65,7 @@
             position: absolute;
             top: 0;
             right: 50%;
-            border-top: 2px solid #ccc;
+            border-top: 2px solid #e9453f;
             width: 50%;
             height: 20px;
         }
@@ -67,7 +73,7 @@
         .tree li::after {
             right: auto;
             left: 50%;
-            border-left: 2px solid #ccc;
+            border-left: 2px solid #e9453f;
         }
 
         .tree li:only-child::before,
@@ -85,11 +91,11 @@
         }
 
         .tree li:last-child::before {
-            border-right: 2px solid #ccc;
+            border-right: 2px solid #ff4040;
         }
 
         .tree li:first-child::after {
-            border-left: 2px solid #cccccc;
+            border-left: 2px solid #ff4040;
         }
 
         .tree ul ul::before {
@@ -97,17 +103,17 @@
             position: absolute;
             top: 0;
             left: 50%;
-            border-left: 2px solid #ccc;
+            border-left: 2px solid #ff4040;
             width: 0;
             height: 20px;
         }
 
         .tree li a {
-            border: 2px solid #ccc;
+            border: 2px solid#ffdb7f;
             padding: 5px 10px;
             text-decoration: none;
-            color: #666;
-            background-color: #f6f9f7;
+            color: #ff4040;
+            background-color: #ffdb7f;
             border-radius: 5px;
             display: inline-block;
             cursor: pointer;
@@ -126,7 +132,7 @@
         .tree li div:focus~ul li div a,
         .tree li div:hover~div a,
         .tree li div:focus~div a {
-            background: #f4938f;
+            background: #e9453f;
             color: white;
             border: 2px solid #e9453f;
         }
@@ -185,7 +191,7 @@
         }
 
         .info-icon:hover {
-            color: #e9453f;
+            color: #ffffff;
         }
 
         /* Modal Styling */
@@ -203,7 +209,7 @@
         }
 
         .modal-content {
-            background-color: #fefefe;
+            background-color: #ffb9b7;
             margin: auto;
             padding: 20px;
             border: 1px solid #888;
@@ -290,20 +296,59 @@
                 padding: 10px;
             }
         }
+
+        #image-overlay {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100vw;
+            height: 100vh;
+            background-color: rgba(0, 0, 0, 0.85);
+            justify-content: center;
+            align-items: center;
+            z-index: 9999;
+            flex-direction: column;
+
+            #close-button {
+                position: absolute;
+                top: 20px;
+                right: 30px;
+                color: white;
+                font-size: 40px;
+                font-weight: bold;
+                cursor: pointer;
+                z-index: 10000;
+                /* Must be higher than the image */
+                user-select: none;
+            }
+        }
+
+        #image-overlay img {
+            max-width: 90%;
+            max-height: 90%;
+            border: 3px solid white;
+            box-shadow: 0 0 10px #000;
+            border-radius: 8px;
+            z-index: 1;
+        }
     </style>
 </head>
 
 <!-- <body class="tree-container"> -->
 
 <body>
-    <h1 style="text-align: center;">Karsan Patel's Family Tree</h1>
+    <h1 style="text-align: center; color: #fff956;">Karsan Patel's Family Tree</h1>
+    <h3 style="text-align: center;">
+        <p style="color: #ffffff; background-color: #f4938f;">🕊️ Crafted with care by Sagar C. Patel, this tree of life grows from the cherished memories shared by Bharat I. Patel, its roots deep in love and legacy.</p>
+    </h3>
 
     <!-- Expand/Collapse All Buttons -->
     <div class="expand-collapse-buttons">
         <button id="expand-all">Expand All</button>
         <button id="collapse-all">Collapse All</button>
-        <h4 style="text-align: center; color: #5f5d5c;">
-            *To see more infomation click on ⓘ next to the name of thefamily member.
+        <h4 style="text-align: center; color: #ff0000;">
+            *To see more infomation about the person; Click on ⓘ next to the name of the family member.
         </h4>
     </div>
 
@@ -317,8 +362,13 @@
         <div class="modal-content">
             <span class="close">&times;</span>
             <h2 id="member-name" style="text-align: center;">Member Name</h2>
+
+            <!-- <img id="member-picture" class="member-picture" src="" alt="Member Picture"
+                onerror="this.src='https://tinyurl.com/26hal84z'"> -->
+
             <img id="member-picture" class="member-picture" src="" alt="Member Picture"
-                onerror="this.src='https://tinyurl.com/26hal84z'">
+                onerror="this.src='https://tinyurl.com/26hal84z'" onclick="openFullscreen(this.src)">
+
             <p id="member-birthdate"><b>Birthdate:</b> </p>
             <p id="member-native">Native: </p>
             <p id="member-living">Current Location: </p>
@@ -466,8 +516,14 @@
                         // Toggle the 'collapsed' class to hide/show children
                         childrenUl.classList.toggle('collapsed');
 
-                        // Adjust the scroll to ensure all nodes are visible after expansion
-                        adjustScrollToEnsureVisibility();
+                        // Scroll the clicked node into center view
+                        setTimeout(() => {
+                            name.scrollIntoView({
+                                behavior: 'smooth',
+                                block: 'center',
+                                inline: 'center'
+                            });
+                        },); // Give time for DOM update
                     }
                 });
             });
@@ -494,18 +550,20 @@
 
         // Function to collapse all nodes except the root node
         function collapseAllNodes() {
-            const allLists = document.querySelectorAll('#family-tree ul:not(.collapsed)');
+            const tree = document.getElementById('family-tree');
+            const allUls = tree.querySelectorAll('ul');
 
-            // Ensure root nodes stay expanded
-            allLists.forEach(ul => {
-                const parentLi = ul.parentElement;
-                const isRoot = parentLi.parentElement.parentElement === null; // Check if it's the root node
-                if (!isRoot) {
-                    ul.classList.add('collapsed');
+            // Get the root <ul> (the one directly under #family-tree)
+            const rootUl = tree.querySelector('ul');
+
+            allUls.forEach(ul => {
+                if (ul !== rootUl) {
+                    ul.classList.add('collapsed'); // collapse all sub-levels
+                } else {
+                    ul.classList.remove('collapsed'); // keep root visible
                 }
             });
 
-            // Adjust scroll after collapsing to make sure the tree fits
             adjustScrollToEnsureVisibility();
         }
 
@@ -554,7 +612,29 @@
         // Fetch family members when the page loads
         window.onload = fetchFamilyMembers;
 
+
+        function openFullscreen(src) {
+            const overlay = document.getElementById('image-overlay');
+            const fullImg = document.getElementById('full-image');
+            fullImg.src = src;
+            overlay.style.display = 'flex';
+        }
+
+        function closeFullscreen() {
+            document.getElementById('image-overlay').style.display = 'none';
+        }
+
+
     </script>
+
+    <!-- Model Image preview -->
+    <div id="image-overlay" onclick="closeFullscreen()">
+        <img id="full-image" src="" alt="Full View">
+    </div>
+    <div id="image-overlay">
+        <span id="close-button" onclick="closeFullscreen()">&#10006;</span>
+        <img id="full-image" src="" alt="Full View">
+    </div>
 
 </body>
 
