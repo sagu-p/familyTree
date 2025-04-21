@@ -6,13 +6,9 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Family Tree</title>
     <style>
-        html {
-            scroll-behavior: smooth;
+        html, body {
+            scroll-behavior: auto;
             /* Enables smooth scrolling */
-        }
-
-
-        body {
             font-family: Arial, sans-serif;
             margin: 0;
             padding: 0;
@@ -20,8 +16,8 @@
 
         /* Scrollable Wrapper to allow horizontal and vertical scroll */
         #family-tree-wrapper {
-            width: 100vw;
-            height: 100vh;
+            width: 100%;
+            height: 100%;
             overflow-x: auto;
             overflow-y: auto;
             position: relative;
@@ -31,10 +27,8 @@
 
         /* Tree container */
         #family-tree {
-            min-width: 300vw;
-            /* Ensures enough space for horizontal expansion */
-            min-height: 100vh;
-            max-width: 1000vw;
+            width: fit-content;
+            height: fit-content;
             white-space: nowrap;
             /* Prevent wrapping */
         }
@@ -308,8 +302,9 @@
     <div class="expand-collapse-buttons">
         <button id="expand-all">Expand All</button>
         <button id="collapse-all">Collapse All</button>
-        <h4 style="text-align: center; color: #5f5d5c;">*To see more infomation click on ⓘ next to the name of the
-            family member.</h4>
+        <h4 style="text-align: center; color: #5f5d5c;">
+            *To see more infomation click on ⓘ next to the name of thefamily member.
+        </h4>
     </div>
 
     <!-- Scrollable Wrapper for family tree -->
