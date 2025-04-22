@@ -210,7 +210,8 @@
         <input type="text" id="edit-birthdate" placeholder="Birthdate (YYYY-MM-DD)">
         <input type="text" id="edit-native" placeholder="Native Place">
         <input type="text" id="edit-living" placeholder="Current Location">
-        <input type="text" id="edit-phone" placeholder="Phone Number">
+        <!-- <input type="text" id="edit-phone" placeholder="Phone Number"> -->
+        <input type="text" id="edit-deathdate" placeholder="Date of Death (YYYY-MM-DD)">
         <input type="file" id="edit-picture" accept="image/*">
         <img id="member-picture" class="member-picture" src="" alt="Member Picture">
         <button id="save-changes">Save Changes</button>
@@ -227,7 +228,8 @@
         <input type="text" id="add-birthdate" placeholder="Birthdate (YYYY-MM-DD)">
         <input type="text" id="add-native" placeholder="Native Place">
         <input type="text" id="add-living" placeholder="Current Location">
-        <input type="text" id="add-phone" placeholder="Phone Number">
+        <!-- <input type="text" id="add-phone" placeholder="Phone Number"> -->
+        <input type="text" id="add-deathdate" placeholder="Date of Death (YYYY-MM-DD)">
         <input type="file" id="add-picture" accept="image/*">
         <button id="add-member-btn">Add Member</button>
     </div>
@@ -370,7 +372,8 @@
         document.getElementById("edit-birthdate").value = member.birthdate || '';
         document.getElementById("edit-native").value = member.native || '';
         document.getElementById("edit-living").value = member.location || '';
-        document.getElementById("edit-phone").value = member.phone || '';
+        // document.getElementById("edit-phone").value = member.phone || '';
+        document.getElementById("edit-deathdate").value = member.deathdate || '';
         document.getElementById("member-picture").src = currentPictureUrl;
 
         modal.style.display = "block";
@@ -399,12 +402,14 @@
         const birthdate = document.getElementById("edit-birthdate").value;
         const native = document.getElementById("edit-native").value;
         const location = document.getElementById("edit-living").value;
-        const phone = document.getElementById("edit-phone").value;
+        //const phone = document.getElementById("edit-phone").value;
+        const deathdate = document.getElementById("edit-deathdate").value;
         const pictureFile = document.getElementById("edit-picture").files[0];
         const pictureUrl = await uploadPicture(pictureFile);
 
         await db.collection("familyMembers").doc(currentMemberId).update({
-            name, birthdate, native, location, phone, picUrl: pictureUrl
+            //name, birthdate, native, location, phone, picUrl: pictureUrl
+            name, birthdate, native, location, deathdate, picUrl: pictureUrl
         });
         window.location.reload();
     });
@@ -414,14 +419,16 @@
         const birthdate = document.getElementById("add-birthdate").value;
         const native = document.getElementById("add-native").value;
         const location = document.getElementById("add-living").value;
-        const phone = document.getElementById("add-phone").value;
+        //const phone = document.getElementById("add-phone").value;
+        const deathdate = document.getElementById("add-deathdate").value;
         const pictureFile = document.getElementById("add-picture").files[0];
         const pictureUrl = await uploadPicture(pictureFile);
 
         if (isAddingSpouse) {
             // Update the current member's spouseId with the new spouse
             const spouseDoc = await db.collection("familyMembers").add({
-                name, birthdate, native, location, phone, picUrl: pictureUrl
+                name, birthdate, native, location, deathdate, picUrl: pictureUrl
+                //name, birthdate, native, location, phone, picUrl: pictureUrl
             });
             await db.collection("familyMembers").doc(currentMemberId).update({
                 spouseId: spouseDoc.id
@@ -430,7 +437,8 @@
             // Add child member with parentId
             const parentId = document.getElementById("addFamilyModal").getAttribute('data-parent-id');
             await db.collection("familyMembers").add({
-                name, birthdate, native, location, phone, picUrl: pictureUrl, parentId
+                name, birthdate, native, location, deathdate, picUrl: pictureUrl
+                //name, birthdate, native, location, phone, picUrl: pictureUrl, parentId
             });
         }
         window.location.reload();

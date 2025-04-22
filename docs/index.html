@@ -372,7 +372,7 @@
             <p id="member-birthdate"><b>Birthdate:</b> </p>
             <p id="member-native">Native: </p>
             <p id="member-living">Current Location: </p>
-            <p id="member-phone">Phone-Number: </p>
+            <p id="member-deathDate"> </p>
         </div>
     </div>
 
@@ -591,7 +591,14 @@
             document.getElementById("member-birthdate").innerHTML = `<strong>Birthdate:</strong> ${member.birthdate || 'N/A'}`;
             document.getElementById("member-native").innerHTML = `<strong>Native:</strong> ${member.native || 'N/A'}`;
             document.getElementById("member-living").innerHTML = `<strong>Current Location:</strong> ${member.location || 'N/A'}`;
-            document.getElementById("member-phone").innerHTML = `<strong>Phone-Number:</strong> ${member.phone || 'N/A'}`;
+            // document.getElementById("member-phone").innerHTML = `<strong>Phone-Number:</strong> ${member.phone || 'N/A'}`;
+            const deathElement = document.getElementById("member-deathDate"); //show date of death only if avaiable
+                if (member.deathdate) {
+                    deathElement.innerHTML = `<strong>Date of Death:</strong> ${member.deathdate}`;
+                    deathElement.style.display = 'block';
+                } else {
+                    deathElement.style.display = 'none';
+                }
             document.getElementById("member-picture").src = member.picUrl || 'default-image.png';  // Set a default picture if none is provided
 
             // Display the modal
