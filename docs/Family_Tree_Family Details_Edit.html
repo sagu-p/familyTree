@@ -307,7 +307,7 @@
         const children = allMembers.filter(m => m.parentId === member.id || (member.spouseId && m.parentId === member.spouseId));
 
         if (children.length > 0) {
-            memberHTML += `<ul class="collapsed">`;
+            memberHTML += `<ul>`;
             children.forEach(child => {
                 memberHTML += generateTreeHTML(child, allMembers);
             });
