@@ -18,6 +18,8 @@
             font-family: Merriweather;
             margin: 0;
             padding: 0;
+            justify-content: center;
+            align-content: center;
         }
 
         /* Scrollable Wrapper to allow horizontal and vertical scroll */
@@ -26,7 +28,6 @@
             height: 100%;
             overflow-x: auto;
             overflow-y: auto;
-            position: relative;
             justify-content: center;
             align-content: center;
         }
@@ -37,6 +38,8 @@
             height: fit-content;
             white-space: nowrap;
             /* Prevent wrapping */
+            justify-content: center;
+            align-content: center;
         }
 
         /* Tree styling */
@@ -348,7 +351,10 @@
         <button id="expand-all">Expand All</button>
         <button id="collapse-all">Collapse All</button>
         <h4 style="text-align: center; color: #ff0000;">
-            *To see more infomation about the person; Click on ⓘ next to the name of the family member.
+            <span style="color: #0047a3;">
+                Press on a family member’s name to show or hide their children.<br/>
+            </span>
+            *Want more info? Just hit the ⓘ next to their name.
         </h4>
     </div>
 
