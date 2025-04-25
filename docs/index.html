@@ -376,8 +376,8 @@
                 onerror="this.src='https://tinyurl.com/26hal84z'" onclick="openFullscreen(this.src)">
 
             <p id="member-birthdate"><b>Birthdate:</b> </p>
-            <p id="member-native">Native: </p>
-            <p id="member-living">Current Location: </p>
+            <p id="member-native">Hometown: </p>
+            <p id="member-living">Resides: </p>
             <p id="member-deathDate"> </p>
         </div>
     </div>
@@ -595,8 +595,8 @@
             // Populate modal with member data
             document.getElementById("member-name").textContent = member.name;
             document.getElementById("member-birthdate").innerHTML = `<strong>Birthdate:</strong> ${member.birthdate || 'N/A'}`;
-            document.getElementById("member-native").innerHTML = `<strong>Native:</strong> ${member.native || 'N/A'}`;
-            document.getElementById("member-living").innerHTML = `<strong>Current Location:</strong> ${member.location || 'N/A'}`;
+            document.getElementById("member-native").innerHTML = `<strong>Hometown:</strong> ${member.native || 'N/A'}`;
+            document.getElementById("member-living").innerHTML = `<strong>Resides:</strong> ${member.location || 'N/A'}`;
             // document.getElementById("member-phone").innerHTML = `<strong>Phone-Number:</strong> ${member.phone || 'N/A'}`;
             const deathElement = document.getElementById("member-deathDate"); //show date of death only if avaiable
                 if (member.deathdate) {
