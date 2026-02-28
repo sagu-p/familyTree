@@ -1,244 +1,666 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Family Tree</title>
-    <style>
-        body {
-            font-family: Arial, sans-serif;
-            margin: 0;
-            padding: 0;
-        }
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+  <title>Family Tree (Modern UI + CRUD)</title>
 
-        #family-tree-wrapper {
-            width: 100vw;
-            height: 100vh;
-            overflow: auto;
-            position: relative;
-        }
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800&display=swap" rel="stylesheet">
 
-        #family-tree {
-            min-width: 250vw;
-            min-height: 100vh;
-            white-space: nowrap;
-        }
+  <style>
+    :root{
+      --bg:#141414;
+      --bg2:#1c1c1c;
+      --panel:rgba(255,255,255,.06);
+      --panel2:rgba(255,255,255,.04);
+      --border:rgba(255,255,255,.12);
+      --border2:rgba(255,255,255,.18);
+      --line:rgba(200,200,200,.55);
+      --text:#f1f1f1;
+      --muted:rgba(255,255,255,.70);
+      --shadow: 0 16px 44px rgba(0,0,0,.55);
+      --radius:18px;
 
-        .tree ul {
-            display: flex;
-            justify-content: center;
-            padding-top: 20px;
-            position: relative;
-            transition: height 0.3s ease;
-        }
+      /* Responsive geometry */
+      --cardW: clamp(150px, 42vw, 210px);
+      --photo: clamp(96px, 24vw, 126px);
+      --gap: clamp(10px, 3vw, 18px);
+      --padTop: clamp(28px, 6vw, 46px);
+      --liPadX: clamp(10px, 3vw, 18px);
+      --stroke: 2px;
+    }
 
-        .tree li {
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            text-align: center;
-            list-style-type: none;
-            position: relative;
-            padding: 20px 5px 0 5px;
-        }
+    *{ box-sizing:border-box; }
 
-        .tree li::before, .tree li::after {
-            content: '';
-            position: absolute;
-            top: 0;
-            right: 50%;
-            border-top: 2px solid #ccc;
-            width: 50%;
-            height: 20px;
-        }
+    html, body{
+      height: 100%;
+      margin: 0;
+      font-family: Inter, system-ui, -apple-system, Segoe UI, Roboto, Arial, sans-serif;
+      background: radial-gradient(1200px 700px at 20% 10%, #242424 0%, var(--bg2) 45%, var(--bg) 100%);
+      color: var(--text);
+      overflow: hidden;
+    }
 
-        .tree li::after {
-            right: auto;
-            left: 50%;
-            border-left: 2px solid #ccc;
-        }
+    /* ---------- Top Bar ---------- */
+    .topbar{
+      position: sticky;
+      top: 0;
+      z-index: 10;
+      padding: 14px 14px;
+      display: grid;
+      grid-template-columns: 1fr auto auto auto;
+      gap: 12px;
+      align-items: center;
+      background: linear-gradient(to bottom, rgba(15,15,15,.92), rgba(15,15,15,.42));
+      backdrop-filter: blur(10px);
+      border-bottom: 1px solid rgba(255,255,255,.06);
+    }
 
-        .tree li:only-child::before, .tree li:only-child::after {
-            display: none;
-        }
+    .brand h1{
+      margin: 0;
+      font-size: 16px;
+      font-weight: 800;
+      letter-spacing: .2px;
+      line-height: 1.1;
+    }
+    .brand p{
+      margin: 6px 0 0;
+      font-size: 12px;
+      color: var(--muted);
+      line-height: 1.35;
+      max-width: 880px;
+    }
 
-        .tree li a {
-            border: 2px solid #ccc;
-            padding: 5px 10px;
-            text-decoration: none;
-            color: #666;
-            background-color: #f8f8f8;
-            border-radius: 5px;
-            display: inline-block;
-            cursor: pointer;
-        }
+    .controls{
+      display:flex;
+      gap: 10px;
+      align-items:center;
+      justify-content:flex-end;
+      flex-wrap: wrap;
+    }
+    .btn{
+      border: 1px solid rgba(255,255,255,.12);
+      background: rgba(255,255,255,.06);
+      color: var(--text);
+      border-radius: 12px;
+      padding: 10px 12px;
+      cursor: pointer;
+      font-size: 13px;
+      transition: transform .12s ease, background .12s ease, border-color .12s ease;
+      user-select:none;
+    }
+    .btn:hover{
+      transform: translateY(-1px);
+      background: rgba(255,255,255,.09);
+      border-color: rgba(255,255,255,.20);
+    }
+    .btn.primary{
+      background: rgba(255,138,0,.18);
+      border-color: rgba(255,138,0,.28);
+    }
+    .btn.primary:hover{
+      background: rgba(255,138,0,.24);
+      border-color: rgba(255,138,0,.35);
+    }
 
-        .tree li a:hover {
-            background: #e9453f;
-            color: white;
-            border: 2px solid #e9453f;
-        }
+    .search{
+      display:flex;
+      gap: 10px;
+      align-items:center;
+      background: rgba(255,255,255,.06);
+      border: 1px solid rgba(255,255,255,.10);
+      border-radius: 12px;
+      padding: 10px 12px;
+      min-width: 260px;
+      box-shadow: 0 10px 22px rgba(0,0,0,.25);
+    }
+    .search .hint{
+      font-size: 12px;
+      color: rgba(255,255,255,.55);
+      user-select:none;
+      white-space: nowrap;
+    }
+    .search input{
+      width: 100%;
+      border: 0;
+      outline: 0;
+      background: transparent;
+      color: var(--text);
+      font-size: 13px;
+    }
 
-        .tree ul.collapsed {
-            display: none;
-        }
+    @media (max-width: 860px){
+      .topbar{
+        grid-template-columns: 1fr;
+        gap: 10px;
+        padding: 12px 12px;
+      }
+      .controls{ justify-content:flex-start; }
+      .search{ min-width: 0; width: 100%; }
+      .brand p{ display:none; }
+    }
 
-        .expand-collapse-buttons {
-            text-align: center;
-            margin: 20px;
-        }
+    /* ---------- Scrollable Canvas ---------- */
+    #family-tree-wrapper{
+      height: calc(100vh - 72px);
+      overflow: auto;
+      padding: 26px 14px 80px;
+      scroll-behavior: smooth;
+      -webkit-overflow-scrolling: touch;
+      touch-action: pan-x pan-y;
+    }
+    @media (max-width: 860px){
+      #family-tree-wrapper{ height: calc(100vh - 190px); }
+    }
 
-        .expand-collapse-buttons button {
-            padding: 10px 20px;
-            font-size: 16px;
-            cursor: pointer;
-            background-color: #e9453f;
-            color: white;
-            border: none;
-            border-radius: 5px;
-            margin-right: 10px;
-        }
+    #family-tree{
+      width: fit-content;
+      height: fit-content;
+      margin: 0 auto;
+    }
 
-        .info-icon {
-            cursor: pointer;
-            font-size: 16px;
-            color: #666;
-            margin-left: 5px;
-        }
+    /* ---------- Tree Layout ---------- */
+    .tree ul{
+      display:flex;
+      justify-content:center;
+      align-items:flex-start;
+      padding-top: var(--padTop);
+      position:relative;
+      margin: 0;
+      white-space: nowrap;
+    }
+    .tree li{
+      list-style:none;
+      padding: var(--padTop) var(--liPadX) 0;
+      position:relative;
+      display:flex;
+      flex-direction:column;
+      align-items:center;
+    }
 
-        /* Modal styling */
-        .modal {
-            display: none;
-            position: fixed;
-            z-index: 1;
-            left: 0;
-            top: 0;
-            width: 100%;
-            height: 100%;
-            overflow: auto;
-            background-color: rgba(0, 0, 0, 0.5);
-            padding-top: 60px;
-        }
+    .tree li::before,
+    .tree li::after{
+      content:'';
+      position:absolute;
+      top: 0;
+      width: 50%;
+      height: var(--padTop);
+      border-top: var(--stroke) solid var(--line);
+    }
+    .tree li::before{ right: 50%; }
+    .tree li::after{
+      left: 50%;
+      border-left: var(--stroke) solid var(--line);
+    }
 
-        .modal-content {
-            background-color: #fefefe;
-            margin: auto;
-            padding: 20px;
-            border: 1px solid #888;
-            width: 80%;
-            max-width: 500px;
-            border-radius: 10px;
-        }
+    .tree li:only-child::before,
+    .tree li:only-child::after{ display:none; }
+    .tree li:only-child{ padding-top: 0; }
 
-        .close {
-            color: #aaa;
-            float: right;
-            font-size: 28px;
-            font-weight: bold;
-        }
+    .tree li:first-child::before,
+    .tree li:last-child::after{ border:0; }
 
-        .close:hover, .close:focus {
-            color: black;
-            cursor: pointer;
-        }
+    .tree li:last-child::before{ border-right: var(--stroke) solid var(--line); }
+    .tree li:first-child::after{ border-left: var(--stroke) solid var(--line); }
 
-        input, button {
-            display: block;
-            width: 100%;
-            margin: 10px 0;
-            padding: 10px;
-            font-size: 16px;
-        }
+    .tree ul ul::before{
+      content:'';
+      position:absolute;
+      top: 0;
+      left: 50%;
+      height: var(--padTop);
+      border-left: var(--stroke) solid var(--line);
+    }
 
-        .member-picture {
-            width: 150px;
-            height: 150px;
-            border-radius: 50%;
-            object-fit: cover;
-            margin-bottom: 20px;
-        }
+    .tree ul.collapsed{ display:none; }
 
-        /* Custom styles for Add Child and Add Spouse buttons */
-        .add-child-btn, .add-spouse-btn {
-            color: white;
-            border: none;
-            border-radius: 5px;
-            padding: 5px 10px;
-            cursor: pointer;
-            margin-top: 5px;
-            width: auto;
-        }
+    .couple{
+      display: inline-flex;
+      gap: var(--gap);
+      align-items: flex-start;
+      justify-content: center;
+      flex-direction: row;
+    }
 
-        .add-child-btn {
-            background-color: #4CAF50; /* Green for Add Child */
-        }
+    /* ---------- Node Card ---------- */
+    .node-wrap{ position: relative; display: inline-block; }
 
-        .add-spouse-btn {
-            background-color: #2196F3; /* Blue for Add Spouse */
-        }
+    .node-card{
+      width: var(--cardW);
+      border-radius: var(--radius);
+      overflow:hidden;
+      background: linear-gradient(to bottom, var(--panel), var(--panel2));
+      border: 1px solid var(--border);
+      box-shadow: var(--shadow);
+      cursor:pointer;
+      transition: transform .14s ease, box-shadow .14s ease, border-color .14s ease;
+      outline:none;
+      -webkit-tap-highlight-color: transparent;
+      user-select:none;
+    }
+    .node-card:hover{
+      transform: translateY(-2px);
+      border-color: var(--border2);
+      box-shadow: 0 18px 55px rgba(0,0,0,.62);
+    }
+    .node-card:active{ transform: translateY(0px) scale(0.99); }
 
-        /* Hover effects for buttons */
-        .add-child-btn:hover {
-            background-color: #45a049;
-        }
+    .node-top{
+      height: 40px;
+      display:flex;
+      align-items:center;
+      justify-content:space-between;
+      padding: 8px 10px;
+      background: var(--accent, #ff8a00);
+    }
+    .dots{
+      letter-spacing: 2px;
+      font-weight: 900;
+      opacity: .95;
+      user-select: none;
+    }
 
-        .add-spouse-btn:hover {
-            background-color: #0b7dda;
-        }
-    </style>
+    .node-photo{
+      width: var(--photo);
+      height: var(--photo);
+      border-radius: 16px;
+      margin: 12px auto 10px;
+      overflow:hidden;
+      background: rgba(0,0,0,.25);
+      border: 1px solid rgba(255,255,255,.10);
+    }
+    .node-photo img{
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      display:block;
+      transition: filter .25s ease, opacity .25s ease;
+    }
+    .node-card.deceased-card .node-photo img{
+      filter: grayscale(0.9) contrast(1.05) brightness(0.95);
+    }
+
+    .node-name{
+      padding: 0 12px 8px;
+      text-align:center;
+      font-weight: 800;
+      font-size: clamp(14px, 4.2vw, 18px);
+      line-height: 1.18;
+      text-shadow: 0 1px 0 rgba(0,0,0,.25);
+    }
+
+    .node-meta{
+      display:flex;
+      justify-content:center;
+      padding: 0 12px 14px;
+    }
+    .badge{
+      display:inline-flex;
+      align-items:center;
+      justify-content:center;
+      gap:6px;
+      padding: 6px 10px;
+      border-radius: 999px;
+      font-size: 11px;
+      font-weight: 800;
+      letter-spacing: .2px;
+      border: 1px solid rgba(255,255,255,.14);
+      background: rgba(0,0,0,.22);
+      color: rgba(255,255,255,.88);
+      white-space: nowrap;
+      user-select: none;
+    }
+    .badge.alive{
+      border-color: rgba(120,255,170,.22);
+      background: rgba(20,140,70,.18);
+    }
+    .badge.deceased{
+      border-color: rgba(255,210,120,.22);
+      background: rgba(170,110,10,.20);
+    }
+
+    /* CRUD overlay buttons on each node */
+    .crud-actions{
+      position: absolute;
+      left: 50%;
+      transform: translateX(-50%);
+      bottom: -14px;
+      display: flex;
+      gap: 8px;
+      z-index: 5;
+      opacity: 0;
+      pointer-events: none;
+      transition: opacity .15s ease;
+    }
+    .node-wrap:hover .crud-actions,
+    .node-wrap:focus-within .crud-actions{
+      opacity: 1;
+      pointer-events: auto;
+    }
+    .mini-btn{
+      border: 1px solid rgba(255,255,255,.14);
+      background: rgba(0,0,0,.35);
+      color: var(--text);
+      border-radius: 999px;
+      padding: 6px 10px;
+      font-size: 12px;
+      cursor: pointer;
+      user-select: none;
+      backdrop-filter: blur(6px);
+    }
+    .mini-btn:hover{
+      border-color: rgba(255,255,255,.22);
+      background: rgba(0,0,0,.45);
+    }
+
+    /* Highlight from search */
+    .node-card.highlight{
+      box-shadow: 0 0 0 3px rgba(255,255,255,.22), 0 24px 70px rgba(0,0,0,.70);
+      border-color: rgba(255,255,255,.35);
+      transform: translateY(-2px) scale(1.02);
+    }
+
+    /* Fade expand/collapse */
+    @keyframes fadeInBranch {
+      from { opacity: 0; transform: translateY(-4px); }
+      to   { opacity: 1; transform: translateY(0); }
+    }
+    @keyframes fadeOutBranch {
+      from { opacity: 1; transform: translateY(0); }
+      to   { opacity: 0; transform: translateY(-4px); }
+    }
+    .branch-opening{ animation: fadeInBranch 220ms ease-out both; }
+    .branch-closing{ animation: fadeOutBranch 180ms ease-in both; }
+
+    /* PHONE: smaller cards, keep PC look */
+    @media (max-width: 520px){
+      :root{
+        --cardW: 140px;
+        --photo: 86px;
+        --gap: 10px;
+        --padTop: 26px;
+        --liPadX: 8px;
+      }
+      .node-top{ height: 34px; padding: 7px 8px; }
+      .node-name{ font-size: 14px; padding: 0 10px 6px; }
+      .badge{ font-size: 10px; padding: 5px 8px; }
+      .crud-actions{ bottom: -16px; }
+      .mini-btn{ font-size: 11px; padding: 6px 9px; }
+    }
+    @media (max-width: 380px){
+      :root{
+        --cardW: 128px;
+        --photo: 78px;
+        --gap: 8px;
+        --padTop: 22px;
+        --liPadX: 6px;
+      }
+    }
+
+    /* ---------- Modal ---------- */
+    .modal{
+      display:none;
+      position: fixed;
+      inset: 0;
+      background: rgba(0,0,0,.65);
+      backdrop-filter: blur(6px);
+      z-index: 999;
+      padding: 50px 16px;
+      overflow:auto;
+    }
+    .modal-content{
+      max-width: 560px;
+      margin: 0 auto;
+      background: #232323;
+      border: 1px solid rgba(255,255,255,.12);
+      border-radius: 18px;
+      padding: 16px 16px 14px;
+      box-shadow: 0 24px 70px rgba(0,0,0,.6);
+    }
+    .close{
+      float:right;
+      font-size: 26px;
+      font-weight: 900;
+      color: rgba(255,255,255,.65);
+      cursor:pointer;
+      user-select:none;
+    }
+    .close:hover{ color:#fff; }
+
+    .field{
+      display:flex;
+      flex-direction:column;
+      gap: 6px;
+      margin: 10px 0;
+    }
+    .field label{
+      font-size: 12px;
+      color: rgba(255,255,255,.75);
+      font-weight: 700;
+    }
+    .field input[type="text"],
+    .field input[type="date"]{
+      width: 100%;
+      padding: 10px 12px;
+      border-radius: 12px;
+      border: 1px solid rgba(255,255,255,.12);
+      background: rgba(255,255,255,.06);
+      color: var(--text);
+      outline: none;
+    }
+    .row{
+      display:flex;
+      align-items:center;
+      gap: 10px;
+      margin: 10px 0;
+    }
+    .row input[type="checkbox"]{
+      transform: scale(1.2);
+    }
+    .row label{
+      margin: 0;
+      font-size: 13px;
+      font-weight: 800;
+      color: rgba(255,255,255,.9);
+    }
+
+    /* Modal image stays normal color */
+    .member-picture{
+      width: min(240px, 78vw);
+      height: min(240px, 78vw);
+      border-radius: 20px;
+      object-fit: cover;
+      display:block;
+      margin: 12px auto 14px;
+      border: 1px solid rgba(255,255,255,.10);
+      cursor: zoom-in;
+    }
+
+    .modal-actions{
+      display:flex;
+      gap: 10px;
+      margin-top: 12px;
+      flex-wrap: wrap;
+    }
+    .danger{
+      background: rgba(255,60,60,.14);
+      border-color: rgba(255,60,60,.25);
+    }
+    .danger:hover{
+      background: rgba(255,60,60,.20);
+      border-color: rgba(255,60,60,.35);
+    }
+
+    /* Fullscreen image overlay */
+    #image-overlay{
+      display:none;
+      position: fixed;
+      inset: 0;
+      background: rgba(0,0,0,.88);
+      z-index: 2000;
+      align-items: center;
+      justify-content: center;
+      flex-direction: column;
+      padding: 22px;
+    }
+    #image-overlay img{
+      max-width: 92vw;
+      max-height: 85vh;
+      border-radius: 14px;
+      border: 1px solid rgba(255,255,255,.12);
+      box-shadow: 0 20px 70px rgba(0,0,0,.65);
+    }
+    #close-button{
+      position:absolute;
+      top: 14px;
+      right: 16px;
+      font-size: 38px;
+      font-weight: 900;
+      color:#fff;
+      cursor:pointer;
+      user-select:none;
+    }
+  </style>
 </head>
+
 <body>
+  <div class="topbar">
+    <div class="brand">
+      <h1>Karsan Patel's Family Tree</h1>
+      <p>🕊️ Crafted with care by Sagar C. Patel — a tree of life growing from love and legacy.</p>
+    </div>
 
-<h1 style="text-align: center;">Karsan Patel's Family Tree</h1>
+    <div class="controls">
+      <button class="btn" id="expand-all">Expand All</button>
+      <button class="btn" id="collapse-all">Collapse All</button>
+    </div>
 
-<div class="expand-collapse-buttons">
-    <button id="expand-all">Expand All</button>
-    <button id="collapse-all">Collapse All</button>
-</div>
+    <button class="btn primary" id="add-root">+ Add Root</button>
 
-<div id="family-tree-wrapper">
+    <div class="search" title="Type a name and press Enter">
+      <span class="hint">Search…</span>
+      <input id="searchInput" type="text" placeholder="type a name (press Enter)" />
+    </div>
+  </div>
+
+  <div id="family-tree-wrapper">
     <div id="family-tree" class="tree"></div>
-</div>
+  </div>
 
-<!-- Modal for editing family member details -->
-<div id="familyModal" class="modal">
+  <!-- EDIT MODAL (Update / Delete) -->
+  <div id="editModal" class="modal">
     <div class="modal-content">
-        <span class="close">&times;</span>
-        <h2 id="member-name" style="text-align: center;">Edit Family Member</h2>
+      <span class="close" id="editClose">&times;</span>
+      <h2 id="edit-title" style="text-align:center;margin:8px 0 0;">Edit Member</h2>
 
+      <img id="edit-picture-preview" class="member-picture" src="" alt="Member Picture"
+           onerror="this.src='https://tinyurl.com/26hal84z'"
+           onclick="openFullscreen(this.src)">
+
+      <div class="field">
+        <label>Name</label>
         <input type="text" id="edit-name" placeholder="Name">
+      </div>
+
+      <div class="field">
+        <label>Birthdate (YYYY-MM-DD)</label>
         <input type="text" id="edit-birthdate" placeholder="Birthdate (YYYY-MM-DD)">
+      </div>
+
+      <div class="field">
+        <label>Native Place</label>
         <input type="text" id="edit-native" placeholder="Native Place">
+      </div>
+
+      <div class="field">
+        <label>Current Location</label>
         <input type="text" id="edit-living" placeholder="Current Location">
-        <!-- <input type="text" id="edit-phone" placeholder="Phone Number"> -->
+      </div>
+
+      <div class="field">
+        <label>Date of Death (YYYY-MM-DD)</label>
         <input type="text" id="edit-deathdate" placeholder="Date of Death (YYYY-MM-DD)">
+      </div>
+
+      <div class="row">
+        <input type="checkbox" id="edit-isDeceased">
+        <label for="edit-isDeceased">Mark as Deceased</label>
+      </div>
+
+      <div class="field">
+        <label>Change Photo</label>
         <input type="file" id="edit-picture" accept="image/*">
-        <img id="member-picture" class="member-picture" src="" alt="Member Picture">
-        <button id="save-changes">Save Changes</button>
-    </div>
-</div>
+      </div>
 
-<!-- Modal for adding a new family member or spouse -->
-<div id="addFamilyModal" class="modal">
+      <div class="modal-actions">
+        <button class="btn" id="save-changes">Save Changes</button>
+        <button class="btn danger" id="delete-member">Delete Member</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ADD MODAL (Create Child / Spouse / Root) -->
+  <div id="addModal" class="modal">
     <div class="modal-content">
-        <span class="close">&times;</span>
-        <h2 style="text-align: center;">Add New Family Member</h2>
+      <span class="close" id="addClose">&times;</span>
+      <h2 id="add-title" style="text-align:center;margin:8px 0 0;">Add Member</h2>
 
+      <div class="field">
+        <label>Name</label>
         <input type="text" id="add-name" placeholder="Name">
-        <input type="text" id="add-birthdate" placeholder="Birthdate (YYYY-MM-DD)">
-        <input type="text" id="add-native" placeholder="Native Place">
-        <input type="text" id="add-living" placeholder="Current Location">
-        <!-- <input type="text" id="add-phone" placeholder="Phone Number"> -->
-        <input type="text" id="add-deathdate" placeholder="Date of Death (YYYY-MM-DD)">
-        <input type="file" id="add-picture" accept="image/*">
-        <button id="add-member-btn">Add Member</button>
-    </div>
-</div>
+      </div>
 
-<script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-app.js"></script>
-<script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-firestore.js"></script>
-<script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-storage.js"></script>
-<script>
+      <div class="field">
+        <label>Birthdate (YYYY-MM-DD)</label>
+        <input type="text" id="add-birthdate" placeholder="Birthdate (YYYY-MM-DD)">
+      </div>
+
+      <div class="field">
+        <label>Native Place</label>
+        <input type="text" id="add-native" placeholder="Native Place">
+      </div>
+
+      <div class="field">
+        <label>Current Location</label>
+        <input type="text" id="add-living" placeholder="Current Location">
+      </div>
+
+      <div class="field">
+        <label>Date of Death (YYYY-MM-DD)</label>
+        <input type="text" id="add-deathdate" placeholder="Date of Death (YYYY-MM-DD)">
+      </div>
+
+      <div class="row">
+        <input type="checkbox" id="add-isDeceased">
+        <label for="add-isDeceased">Mark as Deceased</label>
+      </div>
+
+      <div class="field">
+        <label>Photo</label>
+        <input type="file" id="add-picture" accept="image/*">
+      </div>
+
+      <div class="modal-actions">
+        <button class="btn primary" id="add-member-btn">Add Member</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Fullscreen image overlay -->
+  <div id="image-overlay">
+    <span id="close-button" onclick="closeFullscreen()">&#10006;</span>
+    <img id="full-image" src="" alt="Full View">
+  </div>
+
+  <!-- Firebase (v8.x) -->
+  <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-app.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-firestore.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-storage.js"></script>
+
+  <script>
+    // ✅ Firebase configuration (fill yours)
     const firebaseConfig = {
         apiKey: "AIzaSyBFsvUtF5LNVVgCUBIjjGJ-Qjby9m2DTWA",
         authDomain: "family-tree-5a724.firebaseapp.com",
@@ -252,217 +674,399 @@
     const db = firebase.firestore();
     const storage = firebase.storage();
 
+    let cachedMembers = [];
+
+    // CRUD context for "Add" modal
+    // mode: 'root' | 'child' | 'spouse'
+    let addMode = 'child';
+    let addTargetId = null; // parentId for child, memberId for spouse
+
+    // current edit context
     let currentMemberId = null;
     let currentPictureUrl = null;
-    let isAddingSpouse = false;
 
-    function fetchFamilyMembers() {
-        db.collection("familyMembers").get().then((querySnapshot) => {
-            const familyMembers = [];
-            querySnapshot.forEach((doc) => {
-                familyMembers.push({ id: doc.id, ...doc.data() });
-            });
-            displayFamilyTree(familyMembers);
-        }).catch(error => {
-            console.error("Error fetching family members: ", error);
-        });
+    /* ---------------- Data fetch/render ---------------- */
+    async function fetchFamilyMembers() {
+      const snap = await db.collection("familyMembers").get();
+      const members = [];
+      snap.forEach(doc => members.push({ id: doc.id, ...doc.data() }));
+      cachedMembers = members;
+      displayFamilyTree(members);
     }
 
     function displayFamilyTree(familyMembers) {
-        const familyTreeDiv = document.getElementById('family-tree');
-        const rootMembers = familyMembers.filter(member => member.parentId === "00");
+      const familyTreeDiv = document.getElementById('family-tree');
+      const rootMembers = familyMembers.filter(m => m.parentId === "00");
 
-        if (rootMembers.length > 0) {
-            let treeHTML = '';
-            rootMembers.forEach(rootMember => {
-                treeHTML += generateTreeHTML(rootMember, familyMembers);
-            });
-            familyTreeDiv.innerHTML = `<ul>${treeHTML}</ul>`;
-            adjustScrollToEnsureVisibility();
-            addCollapsibleListeners(familyMembers);
-        } else {
-            console.warn("No root members found. Check if parentId is set correctly.");
-        }
+      if (!rootMembers.length) {
+        familyTreeDiv.innerHTML = "<p style='color:rgba(255,255,255,.7)'>No root members found (parentId should be \"00\"). Use “Add Root”.</p>";
+        return;
+      }
+
+      let html = "";
+      rootMembers.forEach(root => { html += generateTreeHTML(root, familyMembers); });
+      familyTreeDiv.innerHTML = `<ul>${html}</ul>`;
+
+      addTreeListeners(familyMembers);
+      adjustScrollToCenter();
+    }
+
+    // Deceased -> grey header, Alive -> orange (or accentColor)
+    function accentFor(member) {
+      if (member.isDeceased === true) return "#6b6b6b";
+      return member.accentColor || "#ff8a00";
+    }
+
+    function truncateName(name) {
+      const n = (name || "Unknown").trim();
+      return n.length > 14 ? (n.slice(0, 12) + "…") : n;
+    }
+
+    function renderLifeBadge(member) {
+      const deceased = member.isDeceased === true;
+      if (deceased) return `<span class="badge deceased">🕊️ Deceased</span>`;
+      return `<span class="badge alive">● Alive</span>`;
+    }
+
+    function nodeCardHTML(member) {
+      const accent = accentFor(member);
+      const safePic = member.picUrl || "https://tinyurl.com/26hal84z";
+      const deceasedClass = member.isDeceased === true ? "deceased-card" : "";
+
+      return `
+        <div class="node-wrap" data-wrap="${member.id}">
+          <div class="node-card ${deceasedClass}" tabindex="0" data-id="${member.id}" style="--accent:${accent}">
+            <div class="node-top">
+              <span class="dots">•••</span>
+              <span class="mini-icon" title="Edit" data-edit="${member.id}">✎</span>
+            </div>
+
+            <div class="node-photo">
+              <img src="${safePic}" alt="${member.name || 'Member'}"
+                   onerror="this.src='https://tinyurl.com/26hal84z'">
+            </div>
+
+            <div class="node-name">${truncateName(member.name)}</div>
+            <div class="node-meta">${renderLifeBadge(member)}</div>
+          </div>
+
+          <div class="crud-actions">
+            <button class="mini-btn" data-add-child="${member.id}">+ Child</button>
+            <button class="mini-btn" data-add-spouse="${member.id}">+ Spouse</button>
+          </div>
+        </div>
+      `;
     }
 
     function generateTreeHTML(member, allMembers) {
-        let memberHTML = `<li><div class="member-name"> <a href="#" data-id="${member.id}">${member.name}</a>`;
-        memberHTML += `<span class="info-icon" data-id="${member.id}">ⓘ</span> </div>`;
+      let html = `<li>`;
 
-        // Display spouse if available
-        if (member.spouseId) {
-            const spouse = allMembers.find(m => m.id === member.spouseId);
-            if (spouse) {
-                memberHTML += `<div class="member-name"> & <a href="#" data-id="${spouse.id}">${spouse.name}</a>`;
-                memberHTML += `<span class="info-icon" data-id="${spouse.id}">ⓘ</span></div>`;
-            }
-        }
+      if (member.spouseId) {
+        const spouse = allMembers.find(m => m.id === member.spouseId);
+        html += `<div class="couple">`;
+        html += nodeCardHTML(member);
+        if (spouse) html += nodeCardHTML(spouse);
+        html += `</div>`;
+      } else {
+        html += nodeCardHTML(member);
+      }
 
-        // Add buttons directly under each member
-        memberHTML += `<div class="action-buttons">`;
-        memberHTML += `<button class="add-spouse-btn" data-id="${member.id}">Add Spouse</button>`;
-        memberHTML += `<button class="add-child-btn" data-id="${member.id}">Add Child</button>`;
-        memberHTML += `</div>`;
+      const children = allMembers.filter(m =>
+        m.parentId === member.id || (member.spouseId && m.parentId === member.spouseId)
+      );
 
-        const children = allMembers.filter(m => m.parentId === member.id || (member.spouseId && m.parentId === member.spouseId));
+      if (children.length) {
+        html += `<ul class="collapsed">`;
+        children.forEach(child => { html += generateTreeHTML(child, allMembers); });
+        html += `</ul>`;
+      }
 
-        if (children.length > 0) {
-            memberHTML += `<ul>`;
-            children.forEach(child => {
-                memberHTML += generateTreeHTML(child, allMembers);
-            });
-            memberHTML += `</ul>`;
-        }
-
-        memberHTML += `</li>`;
-        return memberHTML;
+      html += `</li>`;
+      return html;
     }
 
-    function addCollapsibleListeners(familyMembers) {
-        const names = document.querySelectorAll('#family-tree .member-name');
-        const infoIcons = document.querySelectorAll('.info-icon');
-        const addChildButtons = document.querySelectorAll('.add-child-btn');
-        const addSpouseButtons = document.querySelectorAll('.add-spouse-btn');
+    /* ---------------- Expand/collapse animations ---------------- */
+    function toggleBranch(childrenUl, open) {
+      if (!childrenUl) return;
 
-        names.forEach(name => {
-            name.addEventListener('click', function(event) {
-                event.preventDefault();
-                const childrenUl = name.parentElement.querySelector('ul');
-                if (childrenUl) {
-                    childrenUl.classList.toggle('collapsed');
-                    adjustScrollToEnsureVisibility();
-                }
-            });
+      if (open) {
+        childrenUl.classList.remove('collapsed');
+        childrenUl.classList.remove('branch-closing');
+        childrenUl.classList.add('branch-opening');
+        window.setTimeout(() => childrenUl.classList.remove('branch-opening'), 240);
+      } else {
+        childrenUl.classList.remove('branch-opening');
+        childrenUl.classList.add('branch-closing');
+        window.setTimeout(() => {
+          childrenUl.classList.add('collapsed');
+          childrenUl.classList.remove('branch-closing');
+        }, 190);
+      }
+    }
+
+    function addTreeListeners(familyMembers) {
+      // Toggle children on card click (not when clicking any CRUD buttons)
+      document.querySelectorAll('.node-card').forEach(card => {
+        card.addEventListener('click', (e) => {
+          if (e.target.closest('[data-edit]')) return; // edit icon
+          if (e.target.closest('.crud-actions')) return; // overlay buttons
+
+          const li = card.closest('li');
+          const childrenUl = li ? li.querySelector(':scope > ul') : null;
+
+          if (childrenUl) {
+            const isCollapsed = childrenUl.classList.contains('collapsed');
+            toggleBranch(childrenUl, isCollapsed);
+
+            setTimeout(() => {
+              card.scrollIntoView({ behavior: 'smooth', block: 'center', inline: 'center' });
+            }, 60);
+          }
         });
 
-        infoIcons.forEach(icon => {
-            icon.addEventListener('click', function(event) {
-                event.stopPropagation();
-                const memberId = icon.getAttribute('data-id');
-                const memberData = familyMembers.find(m => m.id === memberId);
-                showModal(memberData);
-            });
+        card.addEventListener('keydown', (e) => {
+          if (e.key === 'Enter') card.click();
         });
+      });
 
-        addChildButtons.forEach(button => {
-            button.addEventListener('click', function(event) {
-                event.stopPropagation();
-                const parentId = button.getAttribute('data-id');
-                isAddingSpouse = false; // Not adding spouse, adding child
-                showAddModal(parentId);
-            });
+      // Edit (update/delete) modal
+      document.querySelectorAll('[data-edit]').forEach(btn => {
+        btn.addEventListener('click', (e) => {
+          e.stopPropagation();
+          const id = btn.getAttribute('data-edit');
+          const member = familyMembers.find(m => m.id === id);
+          if (member) openEditModal(member);
         });
+      });
 
-        addSpouseButtons.forEach(button => {
-            button.addEventListener('click', function(event) {
-                event.stopPropagation();
-                currentMemberId = button.getAttribute('data-id');
-                isAddingSpouse = true; // Adding spouse
-                showAddModal(currentMemberId);
-            });
+      // Add child modal
+      document.querySelectorAll('[data-add-child]').forEach(btn => {
+        btn.addEventListener('click', (e) => {
+          e.stopPropagation();
+          addMode = 'child';
+          addTargetId = btn.getAttribute('data-add-child'); // parentId
+          openAddModal(`Add Child`);
         });
-    }
+      });
 
-    function showModal(member) {
-        const modal = document.getElementById("familyModal");
-        currentMemberId = member.id;
-        currentPictureUrl = member.picUrl || 'default-image.png';
-
-        document.getElementById("edit-name").value = member.name || '';
-        document.getElementById("edit-birthdate").value = member.birthdate || '';
-        document.getElementById("edit-native").value = member.native || '';
-        document.getElementById("edit-living").value = member.location || '';
-        // document.getElementById("edit-phone").value = member.phone || '';
-        document.getElementById("edit-deathdate").value = member.deathdate || '';
-        document.getElementById("member-picture").src = currentPictureUrl;
-
-        modal.style.display = "block";
-        modal.querySelector(".close").onclick = function() { modal.style.display = "none"; };
-        window.onclick = function(event) { if (event.target == modal) modal.style.display = "none"; };
-    }
-
-    function showAddModal(id) {
-        const modal = document.getElementById("addFamilyModal");
-        modal.setAttribute('data-parent-id', id);
-        modal.style.display = "block";
-        modal.querySelector(".close").onclick = function() { modal.style.display = "none"; };
-        window.onclick = function(event) { if (event.target == modal) modal.style.display = "none"; };
-    }
-
-    async function uploadPicture(file) {
-        if (!file) return currentPictureUrl;
-        const storageRef = storage.ref(`family_members/${file.name}`);
-        const uploadTask = storageRef.put(file);
-        await uploadTask;
-        return await uploadTask.snapshot.ref.getDownloadURL();
-    }
-
-    document.getElementById("save-changes").addEventListener('click', async () => {
-        const name = document.getElementById("edit-name").value;
-        const birthdate = document.getElementById("edit-birthdate").value;
-        const native = document.getElementById("edit-native").value;
-        const location = document.getElementById("edit-living").value;
-        //const phone = document.getElementById("edit-phone").value;
-        const deathdate = document.getElementById("edit-deathdate").value;
-        const pictureFile = document.getElementById("edit-picture").files[0];
-        const pictureUrl = await uploadPicture(pictureFile);
-
-        await db.collection("familyMembers").doc(currentMemberId).update({
-            //name, birthdate, native, location, phone, picUrl: pictureUrl
-            name, birthdate, native, location, deathdate, picUrl: pictureUrl
+      // Add spouse modal
+      document.querySelectorAll('[data-add-spouse]').forEach(btn => {
+        btn.addEventListener('click', (e) => {
+          e.stopPropagation();
+          addMode = 'spouse';
+          addTargetId = btn.getAttribute('data-add-spouse'); // memberId to attach spouseId
+          openAddModal(`Add Spouse`);
         });
-        window.location.reload();
-    });
-
-    document.getElementById("add-member-btn").addEventListener('click', async () => {
-        const name = document.getElementById("add-name").value;
-        const birthdate = document.getElementById("add-birthdate").value;
-        const native = document.getElementById("add-native").value;
-        const location = document.getElementById("add-living").value;
-        //const phone = document.getElementById("add-phone").value;
-        const deathdate = document.getElementById("add-deathdate").value;
-        const pictureFile = document.getElementById("add-picture").files[0];
-        const pictureUrl = await uploadPicture(pictureFile);
-
-        if (isAddingSpouse) {
-            // Update the current member's spouseId with the new spouse
-            const spouseDoc = await db.collection("familyMembers").add({
-                name, birthdate, native, location, deathdate, picUrl: pictureUrl
-                //name, birthdate, native, location, phone, picUrl: pictureUrl
-            });
-            await db.collection("familyMembers").doc(currentMemberId).update({
-                spouseId: spouseDoc.id
-            });
-        } else {
-            // Add child member with parentId
-            const parentId = document.getElementById("addFamilyModal").getAttribute('data-parent-id');
-            await db.collection("familyMembers").add({
-                name, birthdate, native, location, deathdate, picUrl: pictureUrl
-                //name, birthdate, native, location, phone, picUrl: pictureUrl, parentId
-            });
-        }
-        window.location.reload();
-    });
-
-    function adjustScrollToEnsureVisibility() {
-        const wrapper = document.getElementById('family-tree-wrapper');
-        const tree = document.getElementById('family-tree');
-        wrapper.scrollLeft = (tree.scrollWidth - wrapper.clientWidth) / 2;
-        wrapper.scrollTop = (tree.scrollHeight - wrapper.clientHeight) / 2;
+      });
     }
 
+    /* ---------------- Toolbar actions ---------------- */
     document.getElementById('expand-all').addEventListener('click', () => {
-        document.querySelectorAll('#family-tree ul.collapsed').forEach(ul => ul.classList.remove('collapsed'));
-        adjustScrollToEnsureVisibility();
+      document.querySelectorAll('#family-tree ul').forEach(ul => {
+        if (ul.classList.contains('collapsed')) toggleBranch(ul, true);
+      });
+      adjustScrollToCenter();
     });
 
     document.getElementById('collapse-all').addEventListener('click', () => {
-        document.querySelectorAll('#family-tree ul:not(.collapsed)').forEach(ul => ul.classList.add('collapsed'));
-        adjustScrollToEnsureVisibility();
+      const tree = document.getElementById('family-tree');
+      const rootUl = tree.querySelector(':scope > ul');
+      tree.querySelectorAll('ul').forEach(ul => {
+        if (ul !== rootUl && !ul.classList.contains('collapsed')) toggleBranch(ul, false);
+        if (ul === rootUl) ul.classList.remove('collapsed');
+      });
+      adjustScrollToCenter();
+    });
+
+    document.getElementById('add-root').addEventListener('click', () => {
+      addMode = 'root';
+      addTargetId = null;
+      openAddModal('Add Root Member');
+    });
+
+    function adjustScrollToCenter() {
+      const wrapper = document.getElementById('family-tree-wrapper');
+      const tree = document.getElementById('family-tree');
+      wrapper.scrollLeft = (tree.scrollWidth - wrapper.clientWidth) / 2;
+      wrapper.scrollTop  = 0;
+    }
+
+    /* ---------------- Search ---------------- */
+    const searchInput = document.getElementById('searchInput');
+    searchInput.addEventListener('keydown', (e) => {
+      if (e.key !== 'Enter') return;
+      const q = (searchInput.value || "").trim().toLowerCase();
+
+      document.querySelectorAll('.node-card.highlight').forEach(n => n.classList.remove('highlight'));
+      if (!q) return;
+
+      const match = cachedMembers.find(m => (m.name || "").toLowerCase().includes(q));
+      if (!match) return;
+
+      // expand all for simplicity so it can find element
+      document.querySelectorAll('#family-tree ul').forEach(ul => {
+        if (ul.classList.contains('collapsed')) toggleBranch(ul, true);
+      });
+
+      setTimeout(() => {
+        const el = document.querySelector(`.node-card[data-id="${match.id}"]`);
+        if (el) {
+          el.classList.add('highlight');
+          el.scrollIntoView({ behavior: 'smooth', block: 'center', inline: 'center' });
+          setTimeout(() => el.classList.remove('highlight'), 2600);
+        }
+      }, 220);
+    });
+
+    /* ---------------- Storage upload ---------------- */
+    async function uploadPicture(file, fallbackUrl) {
+      if (!file) return fallbackUrl || null;
+      const storageRef = storage.ref(`family_members/${Date.now()}_${file.name}`);
+      const uploadTask = storageRef.put(file);
+      await uploadTask;
+      return await uploadTask.snapshot.ref.getDownloadURL();
+    }
+
+    /* ---------------- Edit modal (Update / Delete) ---------------- */
+    const editModal = document.getElementById('editModal');
+    document.getElementById('editClose').onclick = () => editModal.style.display = 'none';
+
+    function openEditModal(member) {
+      currentMemberId = member.id;
+      currentPictureUrl = member.picUrl || "https://tinyurl.com/26hal84z";
+
+      document.getElementById('edit-title').textContent = `Edit: ${member.name || 'Member'}`;
+      document.getElementById('edit-picture-preview').src = currentPictureUrl;
+
+      document.getElementById('edit-name').value = member.name || '';
+      document.getElementById('edit-birthdate').value = member.birthdate || '';
+      document.getElementById('edit-native').value = member.native || '';
+      document.getElementById('edit-living').value = member.location || '';
+      document.getElementById('edit-deathdate').value = member.deathdate || '';
+      document.getElementById('edit-isDeceased').checked = member.isDeceased === true;
+
+      document.getElementById('edit-picture').value = '';
+      editModal.style.display = 'block';
+    }
+
+    document.getElementById('save-changes').addEventListener('click', async () => {
+      const name = document.getElementById('edit-name').value.trim();
+      const birthdate = document.getElementById('edit-birthdate').value.trim();
+      const native = document.getElementById('edit-native').value.trim();
+      const location = document.getElementById('edit-living').value.trim();
+      const deathdate = document.getElementById('edit-deathdate').value.trim();
+      const isDeceased = document.getElementById('edit-isDeceased').checked;
+
+      const pictureFile = document.getElementById('edit-picture').files[0];
+      const picUrl = await uploadPicture(pictureFile, currentPictureUrl);
+
+      await db.collection("familyMembers").doc(currentMemberId).update({
+        name,
+        birthdate,
+        native,
+        location,
+        deathdate,
+        isDeceased,
+        picUrl: picUrl || null
+      });
+
+      window.location.reload();
+    });
+
+    document.getElementById('delete-member').addEventListener('click', async () => {
+      if (!currentMemberId) return;
+      const ok = confirm("Delete this member? This will remove only this document. (It will not auto-fix spouse/children links.)");
+      if (!ok) return;
+
+      await db.collection("familyMembers").doc(currentMemberId).delete();
+      window.location.reload();
+    });
+
+    /* ---------------- Add modal (Create) ---------------- */
+    const addModal = document.getElementById('addModal');
+    document.getElementById('addClose').onclick = () => addModal.style.display = 'none';
+
+    function openAddModal(title) {
+      document.getElementById('add-title').textContent = title;
+
+      document.getElementById('add-name').value = '';
+      document.getElementById('add-birthdate').value = '';
+      document.getElementById('add-native').value = '';
+      document.getElementById('add-living').value = '';
+      document.getElementById('add-deathdate').value = '';
+      document.getElementById('add-isDeceased').checked = false;
+      document.getElementById('add-picture').value = '';
+
+      addModal.style.display = 'block';
+    }
+
+    document.getElementById('add-member-btn').addEventListener('click', async () => {
+      const name = document.getElementById('add-name').value.trim();
+      const birthdate = document.getElementById('add-birthdate').value.trim();
+      const native = document.getElementById('add-native').value.trim();
+      const location = document.getElementById('add-living').value.trim();
+      const deathdate = document.getElementById('add-deathdate').value.trim();
+      const isDeceased = document.getElementById('add-isDeceased').checked;
+      const pictureFile = document.getElementById('add-picture').files[0];
+      const picUrl = await uploadPicture(pictureFile, null);
+
+      if (!name) {
+        alert("Name is required.");
+        return;
+      }
+
+      const baseData = {
+        name,
+        birthdate,
+        native,
+        location,
+        deathdate,
+        isDeceased,
+        picUrl: picUrl || null
+      };
+
+      if (addMode === 'root') {
+        await db.collection("familyMembers").add({
+          ...baseData,
+          parentId: "00"
+        });
+      } else if (addMode === 'child') {
+        const parentId = addTargetId;
+        await db.collection("familyMembers").add({
+          ...baseData,
+          parentId
+        });
+      } else if (addMode === 'spouse') {
+        const spouseDoc = await db.collection("familyMembers").add({
+          ...baseData
+          // spouse doc can have no parentId; that's okay for spouse records
+        });
+        await db.collection("familyMembers").doc(addTargetId).update({
+          spouseId: spouseDoc.id
+        });
+      }
+
+      window.location.reload();
+    });
+
+    /* ---------------- Image fullscreen ---------------- */
+    function openFullscreen(src) {
+      const overlay = document.getElementById('image-overlay');
+      const fullImg = document.getElementById('full-image');
+      fullImg.src = src;
+      overlay.style.display = 'flex';
+    }
+    function closeFullscreen() {
+      document.getElementById('image-overlay').style.display = 'none';
+    }
+
+    // close modals when clicking outside
+    window.addEventListener('click', (e) => {
+      if (e.target === editModal) editModal.style.display = 'none';
+      if (e.target === addModal) addModal.style.display = 'none';
     });
 
     window.onload = fetchFamilyMembers;
-</script>
-
+  </script>
 </body>
 </html>
