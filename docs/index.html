@@ -132,7 +132,13 @@
       }
       .controls{ justify-content:flex-start; }
       .search{ min-width: 0; width: 100%; }
-      .brand p{ display:none; }
+      .brand p{
+      display:block;
+        font-size: 11px;
+        line-height: 1.35;
+        margin: 6px 0 0;
+        color: rgba(255,255,255,.70);
+      }
     }
 
     /* ---------- Scrollable Canvas ---------- */
@@ -459,7 +465,7 @@
   <div class="topbar">
     <div class="brand">
       <!-- <h1>Karsan Patel's Family Tree</h1> -->
-      <b>🕊️ Tree of life growing from love and legacy.</b>
+      
       <p>Crafted with care by Sagar C. Patel, with heartfelt contributions and cherished information shared by Bharat Patel.</p>
     </div>
 
@@ -475,6 +481,7 @@
   </div>
 
   <div id="family-tree-wrapper">
+    <b style="display:block; text-align:center;">🕊️ Tree of life growing from love and legacy.</b>
     <div id="family-tree" class="tree"></div>
   </div>
 
