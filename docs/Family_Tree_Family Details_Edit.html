@@ -556,6 +556,7 @@
       <h2 id="edit-title" style="text-align:center;margin:8px 0 0;">Edit Member</h2>
 
       <img id="edit-picture-preview" class="member-picture" src="" alt="Member Picture"
+           loading="lazy"
            onerror="this.src='https://tinyurl.com/26hal84z'"
            onclick="openFullscreen(this.src)">
 
@@ -743,6 +744,7 @@
 
             <div class="node-photo">
               <img src="${safePic}" alt="${member.name || 'Member'}"
+                   loading="lazy"
                    onerror="this.src='https://tinyurl.com/26hal84z'">
             </div>
 
